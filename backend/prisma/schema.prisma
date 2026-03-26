@@ -1,42 +1,37 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `ั
-
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  user_id         Int @id @default(autoincrement())
-  username        String @unique
-  email           String
-  password        String
-  firstname       String?
-  lastname        String?
-  nickname        String?
-  gender          String?
-  weight          Float?
-  height          Float?
-  daily_cal_goal  Float?   //บ้างอย่างตามใส่ที่หลังได้
-  profile_img     String?
-  createAt        DateTime @default(now())
-  // ตัวเชื่อมกลับ (Back-relations)
+  user_id        Int            @id @default(autoincrement())
+  username       String         @unique
+  email          String         @unique
+  password       String
+  firstname      String?
+  lastname       String?
+  nickname       String?
+  gender         String?
+  weight         Float?
+  height         Float?
+  daily_cal_goal Float?
+  profile_img    String?
+  createdAt      DateTime       @default(now())
+
+  // ความสัมพันธ์เเต่ละฟิลด์ เเม่รู้จักลุกนี้ลูกชั้นนะ 
   DailyLogs      DailyLog[]
   StepLogs       StepLog[]
   ExerciseLogs   ExercisesLog[]
 }
 
-model FoodLibrary{
-  food_id      Int @id @default(autoincrement())
+model FoodLibrary {
+  food_id      Int        @id @default(autoincrement())
   food_image   String?
-  food_name    String  //ชื่ออาหารเวลาค้นหา
+  food_name    String
   category     String
   calories     Int
   protein      Int
@@ -45,25 +40,26 @@ model FoodLibrary{
   sugar        Int
   cholesterol  Int
   sodium       Int
-  ai_labels    String?  // คำค้นหาเพิ่มเติมที่ AI ช่วยติดแท็กให้ การถ่ายภาพ
+  ai_labels    String?  
   serving_size Float
-  unit_name    String //ต่อหน่วย จาน ชาม
-  DailyLogs DailyLog[] 
+  unit_name    String
+  DailyLogs    DailyLog[] 
 }
-model DailyLog{
+
+model DailyLog {
   log_id          Int          @id @default(autoincrement())
   user            User         @relation(fields: [user_id], references: [user_id])
   user_id         Int
   food            FoodLibrary? @relation(fields: [food_id], references: [food_id])
   food_id         Int?
-  
   amount_eaten    Float        @default(1.0)
   logged_calories Int
   meal_type       String
   log_date        DateTime     @default(now())
   image_url       String?
 }
-model Ariticles{
+
+model Article {
   article_id      Int      @id @default(autoincrement())
   title           String
   article_url     String
@@ -74,32 +70,34 @@ model Ariticles{
   category        String
   createdAt       DateTime @default(now())
 }
-model Exercises{
-  exercise_id         Int   @id @default(autoincrement())
-  exercise_name       String
-  difficulty_level    String  //Esay,Medium
-  kcal_per_unit       Int     //เเคลลอร่ีเผาผลาญต่อนาทีหรือครั้ง
-  video_url           String?
-  image_url           String?
-  ExercisesLogs    ExercisesLog[]
 
+model Exercises {
+  exercise_id      Int            @id @default(autoincrement())
+  exercise_name    String
+  difficulty_level String
+  kcal_per_unit    Int
+  video_url        String? 
+  image_url        String?
+  ExercisesLogs    ExercisesLog[]
 }
-model ExercisesLog{
-  ex_log_id          Int @id @default(autoincrement())
-  user_id            Int 
-  exercise_id        Int
-  step               Int
-  total_kcal_burned  Float
-  log_data           DateTime @default(now())
-  user               User     @relation(fields: [user_id], references: [user_id])
-  exercise           Exercises @relation(fields: [exercise_id], references: [exercise_id])
+
+model ExercisesLog {
+  ex_log_id         Int       @id @default(autoincrement())
+  user              User      @relation(fields: [user_id], references: [user_id])
+  user_id           Int
+  exercise          Exercises @relation(fields: [exercise_id], references: [exercise_id])
+  exercise_id       Int
+  step              Int       @default(0)
+  total_kcal_burned Float
+  log_date          DateTime  @default(now())
 }
+
 model StepLog {
-  step_id         Int      @id @default(autoincrement())
-  user_id         Int
-  steps           Int      @default(0)   // ก้าวจากเซนเซอร์มือถือ หรือ AI กะให้
-  calories_burned Float    @default(0)
-  source          String   // เก็บที่มา: "Sensor"
-  log_date        DateTime  @default(now())
-  user            User     @relation(fields: [user_id], references: [user_id])
+  step_id          Int      @id @default(autoincrement())
+  user             User     @relation(fields: [user_id], references: [user_id])
+  user_id          Int
+  steps            Int      @default(0)
+  calories_burned  Float    @default(0)
+  source           String   @default("Sensor")  //เช้นอร์เอาจากเเอพอื่น 
+  log_date         DateTime @default(now())
 }
