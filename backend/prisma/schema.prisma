@@ -1,7 +1,8 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
+//การConfiguration
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -9,5 +10,87 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
+}
+
+model User {
+ user_Id       String   @id @default(uuid())
+  userName      String?
+  email         String   @unique
+  gender        String
+  age           Float
+  weight        Float
+  height        Float
+  userImage     String?  //ภาพโปร
+  targetWeight  Float    //เป้าหมาย
+  planType      String   // ยาก ไว เร็ว
+  weeklyGoal    Float    //เเต่ละอาทติย์ลดเท่าไร
+  calculatedCal Int     //คำนวณเเคล
+
+  foodLogs      FoodLogs[]
+  exerciseLogs  ExercisesLogs[]
+  walkLogs      Walk[]
+}
+//ข้อมูลอาหาร
+model Food{
+  food_Id   Int        @id @default(autoincrement())
+  foodImage String?
+  foodName  String
+  calories  Int
+  unit      String
+  category  String
+  foodLogs  FoodLogs[]  //ความสัมพันธ์
+}
+//ตัวบันทึก 
+model FoodLogs {
+ log_Id         String   @id @default(uuid())
+  user_Id        String  
+  food_Id        Int 
+  amountEaten    Float     //จำนวนต่อหน่วย
+  mealType       String   
+  logData        DateTime @default(now())  //วันที่กิน
+  timeType       DateTime @default(now()) //เวลาที่กิน
+  logImage       String?
+  isAiGenerated  Boolean  @default(false)
+
+  user           User     @relation(fields: [user_Id], references: [user_Id])
+  food           Food     @relation(fields: [food_Id], references: [food_Id])
+}
+model Exercises{
+  ex_Id       Int       @id @default(autoincrement()) 
+  exName      String
+  level       String
+  kcal        Float
+  videoUrl    String?
+  exerciseUrl String?
+  logs        ExercisesLogs[]
+} 
+model ExercisesLogs{
+  exLog_Id   Int      @id @default(autoincrement())
+  user_Id    String 
+  ex_Id      Int      // เปลี่ยนจาก String เป็น Int ให้ตรงกับโมเดล Exercises
+  extype     String   
+  repsDone   Float      
+  totalBurn  Float      
+  exData     DateTime @default(now())
+
+  user       User      @relation(fields: [user_Id], references: [user_Id])
+  exercises  Exercises @relation(fields: [ex_Id], references: [ex_Id])
+}
+model Ariricles{
+  article_Id   Int @id @default(autoincrement())
+  title        String
+  articeLink   String?    //ลิงค์ไปเปิดเว็บ
+  articeimage  String?    //ภาพโชว์เเอพ
+  creditName   String?    //ชื่อเเหล่งที่มา
+  pushData     DateTime @default(now())  //วันที่เอาขึ้นเว็บ ข่าว
+}
+model Walk{
+ walk_id      Int      @id @default(autoincrement())
+  user_Id      String
+  stepsCount   Float
+  distanceKm   Float
+  caloriesBurn Float
+  walkData     DateTime @default(now())
+
+  user         User     @relation(fields: [user_Id], references: [user_Id])
 }
