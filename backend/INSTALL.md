@@ -1,5 +1,8 @@
-npm install -D @types/express @types/node -> @types/expressการเอาเข้ามาเพื่อให้Ts ทราบว่า Req,resเป็นยังไง คำสั่งอะไร
-@typpes/node  -> ช่วยให้ีู้จักคำสั่งพื้นฐานของ Node.js 
-npm install bcryptjs json webtoken
-npm install -D @types/bcryptjs @types/jsonwebtoken
-สองอันนี้คือ ตัวช่วยสำหรับแฮชรหัสผ่าน (ไม่เก็บรหัสผ่านเป็นตัวหนังสือตรงๆ) และตัวสร้าง Token
+✭ npm init -y 
+ส้รางโปรเจกต์ Node.js 
+✭ npm install prisma --save-dev/npm install @prisma/client 
+การติดตั้ง Prisma 
+✭ npx prisma init 
+เริ่มต้นระบบPrisma 
+✭ npx tsc --init
+ไฟล์ที่ตั้งค่า (configuration)ขอTypeScript ว่าจะcompile โค๊ด ยังไง
