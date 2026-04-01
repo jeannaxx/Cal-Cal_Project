@@ -98,4 +98,7 @@ _____________________________________
 _____________________________________
 👉👉👉 resizeMode : prop ของ <Image> ใน React Native
 ใช้กำหนดวิธีปรับขนาดรูปเมื่อใส่ใน <Image>
-👉 resizeMode="contain" : contain ขนาดรุปพอดีกับcontainer,ไม่ถุกตัด,สัดส่วนไม่เปลี่ยน
+-> resizeMode="contain" : contain ขนาดรุปพอดีกับcontainer,ไม่ถุกตัด,สัดส่วนไม่เปลี่ยน
+👉👉👉 Spinner ปุ่มหมุนตอนดาวโลด
+-> ActivityIndicator this Basic React-Native,thia show Spinner is 
+-> size="large" จะมีสองเเบ small,large
