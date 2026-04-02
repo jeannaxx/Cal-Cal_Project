@@ -1,6 +1,20 @@
-import React from 'react';
-import LoginScreen from './src/screens/LoginScreen';
+import React, { useState } from 'react';
+import Login from './pages/Login';
 
-export default function App() {
-  return <LoginScreen />;
+function App() {
+  const [isLogin, setIsLogin] = useState(false);
+
+  return (
+    <>
+      {isLogin ? (
+        <h1 style={{ textAlign: 'center', marginTop: '100px' }}>
+          Welcome to Dashboard 🎉
+        </h1>
+      ) : (
+        <Login onLogin={() => setIsLogin(true)} />
+      )}
+    </>
+  );
 }
+
+export default App;
