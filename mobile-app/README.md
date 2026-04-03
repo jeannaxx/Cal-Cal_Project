@@ -40,17 +40,18 @@ router.replace('/page') : ย้อนกลับ
 _____________________________________
 👉👉👉//State 
 const [isLoading,setLoading] = useState(false);
-useState = ตัวเก็บค่า (state ) ในcomponent  
+👉👉useState = ตัวเก็บค่า (state ) ในcomponent  
 👉 const [ตัวแปร, ฟังก์ชันเปลี่ยนค่า] = useState(ค่าเริ่มต้น);
 👉 อธิบาย const [isLoading, setLoading] = useState(false);
 isLoading : เก็บสถานะ กำลังโหลดอยุ่ไหม
 ✭  ค่าเริ่มต้น : false (ยังไม่โหลด)
 setLoading(true) = เริ่มโหลด
 setLoading(false ) = โหลดเสร็จ
-👉const [email, setEmail] = useState('');/password
-email :เก็บสถานะ เ้บค่าอีเมล์ ที่ผู้ใช้พิม
-✭  ค่าเริ่มต้น  '' (null) รอผุ้ใช้พิมพ์เข้ามา  email is str
-setEmail('adlg,@gmail.com') : เปลี่ยนค่า
+👉const [email, setEmail] = useState(''); /password
+email :เก็บสถานะ เก็บค่าอีเมล์ ที่ผู้ใช้พิม
+✭  ค่าเริ่มต้น  '' (null) 
+: รอผู้ใช้พิมพ์เข้ามา  email is str
+setEmail('adlg,@gmail.com') -> เปลี่ยนค่า
 _____________________________________
 👉👉👉 การสร้างฟังก์ชั่น handlelogin ใช้ทำงานตอนผู้ใช้กดปุ่ม
 

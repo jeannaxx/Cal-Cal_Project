@@ -6,6 +6,8 @@ import { useRouter } from 'expo-router';
 // import ButtonsInput from '../../component/ButtonsInput';
 import LoadingScreen from '../../component/common/LoadingScreen';
 
+
+
 export default function LoginScreen(){
     const router = useRouter();
 
@@ -28,6 +30,9 @@ export default function LoginScreen(){
     return(
         <View style={styles.container}>
             {isLoading && <LoadingScreen/>}
+            <ScrollView>
+                
+            </ScrollView>
 
 
         </View>
