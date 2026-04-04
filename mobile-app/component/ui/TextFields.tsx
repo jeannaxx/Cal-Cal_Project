@@ -2,7 +2,9 @@
 import React, { useState } from "react";
 import {
   View,
+  TextInput,
   Text,
+  StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -11,18 +13,20 @@ import {
   Keyboard,
 } from "react-native";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
+import { supabase } from "../common/supabase";
+import { CustomButton } from "./CustomInput";
 
 interface FormData {
   userName: string;
-  email: String;
-  password: String;
-  confirmPassword: String;
+  email: string;
+  password: string;
+  confirmPassword: string;
 }
 interface FormErrors {
   userName: string;
-  email: String;
-  password: String;
-  confirmPassword: String;
+  email: string;
+  password: string;
+  confirmPassword: string;
 }
 
 export default function TextFields() {
@@ -35,50 +39,53 @@ export default function TextFields() {
   });
 
   //State เก็บ error Messages
-  const [errors, SetErrors] = useState<FormErrors>({
+  const [errors, setErrors] = useState<FormErrors>({
     userName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-  //state สำหรับfieldที่ถูก touchเเล้ว 
-  const [touch,setTouched]=useState<{[key:string]:Boolean}>({});
+  //state สำหรับfieldที่ถูก touchเเล้ว
+  const [touch, setTouched] = useState<{ [key: string]: Boolean }>({});
   //State สำหรับ loading
-  const [isLoading,setIsLoading] = useState(false); //ยังไม่โหลด55
+  const [isLoading, setIsLoading] = useState(false); //ยังไม่โหลด55
+
+  //state เก็บๅerrors
+  // const [newErrors,setnewErros] = useState<{ [key: string]: Boolean }>({});
 
   //ฟังก์ชันfield ช่องที่เอาไว้กรอก
   const validateField = (name: string, value: string): string | undefined => {
-    switch(name){
+    switch (name) {
       case "userName":
-        if(!value.trim()){
-          return"กรุณาชื่อ";
+        if (!value.trim()) {
+          return "กรุณาชื่อ";
         }
-        if(value.trim().length < 3){
+        if (value.trim().length < 3) {
           return "ชื่อ ต้องมีอย่างน้อย 3 ตัวอักษร";
         }
         return undefined;
       case "email":
-        if(!value.trim()){
-          return"กรุณากรอกอีเมล";
+        if (!value.trim()) {
+          return "กรุณากรอกอีเมล";
         }
         const emailRegex = /^[^\s@]+@[^|s@]+\.[^\s@]+$/;
-        if(!emailRegex.test(value)){
-          return"รูปแบบอีเมลไม่ถูกต้อง";
+        if (!emailRegex.test(value)) {
+          return "รูปแบบอีเมลไม่ถูกต้อง";
         }
         return undefined;
       case "password":
-        if(!value.trim()){
-          return"กรุณากรอกรหัสผ่าน";
+        if (!value.trim()) {
+          return "กรุณากรอกรหัสผ่าน";
         }
-        if(value.trim().length < 8 ){
+        if (value.trim().length < 8) {
           return "รหัสผ่านต้องมีอย่างน้ยอย 6 ตัวอักษร";
         }
         return undefined;
       case "confirmPassword":
-        if(!value){
-          return"กรุณายืนยันรหัสผ่าน";
+        if (!value) {
+          return "กรุณายืนยันรหัสผ่าน";
         }
-        if (value !== formData.password){
+        if (value !== formData.password) {
           return "รหัสผ่านไม่ตรงกัน";
         }
         return undefined;
@@ -87,14 +94,173 @@ export default function TextFields() {
     }
   };
   //ฟังก์ชันการเปลี่ยนเเปลงค่าในinput
-  const handleChange = (name:keyof FormData,value:string) =>{
-    setFormData((prev) =>({
+  const handleChange = (name: keyof FormData, value: string) => {
+    setFormData((prev) => ({
       ...prev,
-      [name]:value,
-    }))
-  }
+      [name]: value,
+    }));
+    //Validate realtime ถ้าfild(ช่อง) ถูก touchเเล้ว
+    if (touch[name]) {
+      const error = validateField(name, value);
+      setErrors((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+  //fucntion จัดการเมื่อInputถูกblur(สูยเสียการโฟกัส)
+  const handleBlur = (name: keyof FormData) => {
+    setTouched((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
+    //Validate เมื่อblur
+    const error = validateField(name, formData[name]);
+    setErrors((prev) => ({
+      ...prev,
+      [name]: error,
+    }));
+  };
+  //function  Validate ทั้ง form
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {
+      userName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    };
+    let isValid = true;
 
+    // ตรวจสอบทุก field
+    (Object.keys(formData) as Array<keyof FormData>).forEach((key) => {
+      const error = validateField(key, formData[key]);
+      if (error) {
+        newErrors[key] = error;
+        isValid = false;
+      }
+    });
 
+    setErrors(newErrors);
 
-  
-}; //ปิดใหญ่
+    // 2. Mark ทุก field ว่าถูก touch แล้ว
+    const allTouched: { [key: string]: boolean } = {};
+    Object.keys(formData).forEach((key) => {
+      allTouched[key] = true;
+    });
+
+    setTouched(allTouched); // บังคับให้ Error แดงทุกช่องที่ว่าง
+    return isValid;
+  };
+  //การsubmit
+  const handSubmit = async () => {
+    //ปิดkeybord
+    Keyboard.dismiss();
+
+    //Validate From
+    if (!validateForm()) {
+      Alert.alert("ข้อมูลไม่ถูกต้อง", "กรุณาตรวจสอบข้อมูลเเละลองใหม่อีกครั้ง");
+      return;
+    }
+    //จำลองการส่งข้อมูล
+    setIsLoading(true);
+    try {
+      //ส่งข้อมูลไปที่supabase
+      // สมมติว่าตารางชื่อ 'profiles' หรือ 'users'
+      const { data, error } = await supabase
+        .from("User") //ชื่อตารางsupabase
+        .insert([
+          {
+            userName: formData.userName,
+            email: formData.email,
+            password: formData.password,
+            confirmPassword: formData.confirmPassword,
+          },
+        ]);
+      if (error) throw error; //ถ้าsupaพังให้ขึ้นมาทางerros ไปที่catch
+
+      Alert.alert("สำเร็จ!", "บันทึกจ้อมูลรียบร้อยเเล้ว");
+    } catch (err) {
+      //พัังจะเด้งมานี้
+      console.error(err);
+      Alert.alert("เกิดข้อผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้");
+    } finally {
+      //ส่วนที่ต้องทำเสมอ/ไม่สำรเ็จเเละสำเร็จ ก็ปิด Loaddingเสมอ
+      setIsLoading(false);
+    }
+  };
+  //ฟังก์ชันรีเช็ต
+  const handleReset = () => {
+    // 1. ล้างข้อมูลใน Input ทุกช่อง
+    setFormData({
+      userName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      // ถ้ามี gender ก็ใส่ gender: "" ด้วยนะครับ
+    });
+    // 2. ล้างค่า Error
+    setErrors({
+      userName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+    // 3. ล้างสถานะการ Touch (ไม่ให้ขึ้นตัวแดงทันทีหลังล้างฟอร์ม)
+    setTouched({});
+  };
+  return (
+    <KeyboardAvoidingView>
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1" keyboardVerticaoffset ={" "}
+      {Platform.OS === "ios" ? 0 : 20}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          className="flex-1 bg-[#FDE2E4]" // ใส่สีพื้นหลัง
+          contentContainerStyle={{ paddingBottom: 32 }} // ใส่ระยะห่างด้านล่างที่นี่
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Form Content */}
+          <View style={styles.container}>
+            <TextInput
+              placeholder="Username"
+              value={formData.userName}
+              onChangeText={(value) => handleChange("userName", value)}
+              onBlur={() => handleBlur("userName")}
+              style={[styles.input,touch.userName && errors.userName? { borderBottomColor: "red" }: {},
+              ]}
+            />
+            <TextInput
+              placeholder="Email" //โชว์ในช่อง สีบางๆ
+              placeholderTextColor="#A9A9A9"
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Passsword" //โชว์ในช่อง สีบางๆ
+              placeholderTextColor="#A9A9A9"
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="ConfrimePasssword" //โชว์ในช่อง สีบางๆ
+              placeholderTextColor="#A9A9A9"
+              style={styles.input}
+            />
+          </View>
+          <View>
+            <Text className="text-blue-700">
+              เมื่อคุณกดปุ่มลงชื่อเข้าใช้เท่ากับว่าคุณได้อ่านเเละยอมรับ
+            </Text>
+            <Text className="text-red-700 text-sm ">
+              นโยบายความเป็นส่วนตัวเเละเงื่อนไขการใช้บริการ
+            </Text>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+      {/* ใส่ ปุ่มลากสุด */}
+    </KeyboardAvoidingView>
+  );
+} //ปิดใหญ่
+
+const styles = StyleSheet.create({
+  container: {},
+  input: {},
+});

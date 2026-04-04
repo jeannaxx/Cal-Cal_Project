@@ -106,6 +106,14 @@ ___________________________________________________________
 - size="large" จะมีสองเเบ small,large
 ___________________________________________________________
 TextFiled pange
+📁cการทำงาน 
+1.State ต่างๆ (formData, errors, touched, isLoading)
+2.validateField (ตัวเช็คทีละช่อง)
+3.validateForm (ตัวเช็คทั้งฟอร์ม)
+4.handleChange (ตัวเก็บค่าตอนพิมพ์)
+5.handleBlur (ตัวเช็คตอนเลิกโฟกัสช่องนั้น)
+6.handleSubmit (ตัวส่งข้อมูลไปเซฟsupperbase)
+
 📁const [touch,setTouched]=useState<{[key:string]:Boolean}>({});
 📁 {[key: string]: boolean} : Type เบบบIndex Signatuer  
 - key: string ชื่อของProperty เป็นข้อความStr อะไรก็ได้ เช่นemail
@@ -161,3 +169,54 @@ function getStatusColor(status) {
   // โค้ดตรงนี้จะไม่มีวันทำงาน เพราะทุก case ข้างบนมี return หมดแล้ว
   console.log("Finished!"); 
 }
+___________________________________________________________
+
+📄 setFormData((prev) =>({
+      ...prev,
+      [name]:value,
+    }))
+- (prev) => ({ ... }) 
+- prev : ค่าของformData ณ ปัจจุบัน(ก่อนอัพเดต)
+- ...prev : เหมือนคือการก็อปปี้ เหมือนข้อมูลทั้งหมดในObject ทั้งหมดมาวางไว้ก่อน
+- [name]:value : []การเอาค่าที่อยุ่ในตัวแปรnameมาเป็นชื่อkey เช่น เช่น ถ้าคุณกำลังพิมพ์ในช่อง <input name="email"> ตัวแปร name ก็จะมีค่าเป็น "email"
+Ex...
+{ firstName: 'John', lastName: 'Doe' }
+-  ...prev    : ก๊อปปี้ของเดิมมา: { firstName: 'John', lastName: 'Doe' }
+- [name]: value : เขียนทับตัวที่ชื่อ lastName ด้วย 'Wick'
+- ผลลัพธ์ใหม่ : { firstName: 'John', lastName: 'Wick' }
+
+📁 สั่งให้โปรแกรมวิ่งไปตรวจการบ้านทุกช่องในฟอร์ม
+(Object.keys(formData) as Array<keyof FormData>).forEach((key) => {
+      const error = validateField(key, formData[key]);
+      if (error) {
+        newErrors[key] = error;
+        isValid = false;
+      }
+    });
+1.Object.keys(formData)
+ ดึงหัวข้อkeyทั้งหมดในformData ออกมาเป็นarray
+ ถ้า formData คือ { userName: '...', email: '...' } ส่วนนี้จะได้ค่าเป็น ['userName', 'email']
+2.as Array<keyof FormData> 
+  การยืนยันกับ TypeScript ว่า "เฮ้ย! ไอ้ List ที่ดึงออกมาเนี่ย มันคือชื่อฟิลด์ที่อยู่ใน FormData แน่นอนนะ"
+3. .forEach((key) => { ... })
+  สั่งให้ทำคำสั่งในวงเล็บ ซ้ำๆ จนครบทุกชื่อฟิลด์ ที่ดึงมาได้จากข้อ 1
+4. const error = validateField(key, formData[key]);
+  - key: คือชื่อฟิลด์ปัจจุบัน (เช่น "email")
+  - formData[key]: คือ "ค่า" ที่ผู้ใช้พิมพ์ไว้ในฟิลด์นั้น (เช่น "test@mail.com")
+  - มันจะส่งทั้ง "ชื่อ" และ "ค่า" ไปให้ฟังก์ชัน validateField ตรวจสอบตาม Logic switch-case ที่เราเขียนไว้
+5.if (error) { ... }
+  -ฟังก์ชันตรวจสอบส่ง "ข้อความด่า" (Error Message) กลับมา (แปลว่าไม่ผ่าน)
+  -1.newErrors[key] = error;: บันทึกข้อความนั้นลงใน Object newErrors ตามชื่อฟิลด์นั้นๆ
+  -2.isValid = false;: ปักธงไว้เลยว่า "ฟอร์มนี้ใช้งานไม่ได้นะ มีจุดผิด!"
+
+📄สรุปภาพรวมด้วยการเปรียบเทียบ
+- Object.keys: คือการนับว่า มีข้อสอบทั้งหมดกี่ข้อ
+- .forEach: คือการที่ครูเดินไป ตรวจทีละข้อ
+- validateField: คือ เฉลย ที่ครูใช้ดูว่าข้อนั้นตอบถูกไหม
+- isValid = false: คือการที่ครู กาหัวกระดาษ ว่าสอบตก ถ้าเจอข้อที่ผิดแม้แต่ข้อเดียว
+
+📁 สรุปโครงสร้างการวาง
+- ชั้นนอกสุด: KeyboardAvoidingView (คอยดึงหน้าจอหลบคีย์บอร์ด)
+- ชั้นกลาง: TouchableWithoutFeedback (คอยปิดคีย์บอร์ดเมื่อจิ้มที่ว่าง)
+- ชั้นใน: ScrollView (คอยให้ไถหน้าจอได้)
+- เนื้อหา: พวก TextFields และ CustomButton ของคุณจะอยู่ข้างในสุดครับ

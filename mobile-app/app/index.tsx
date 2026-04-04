@@ -1,15 +1,10 @@
-import { Text, View } from "react-native";
+import { Text, View ,SafeAreaView} from "react-native";
+import TextFields from "@/component/ui/TextFields";
 
 export default function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
+   <SafeAreaView style={{ flex: 1, backgroundColor: '#FDE2E4' }}> 
+      <TextFields />
+    </SafeAreaView>
   );
 }

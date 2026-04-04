@@ -1,3 +1,5 @@
+//โชว์ทั้งหมดในนหน้านี้ ตัวหลักกก เรียกใช้ขึ้นเว็บ 
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
