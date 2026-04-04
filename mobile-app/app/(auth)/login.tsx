@@ -30,7 +30,8 @@ export default function LoginScreen(){
     return(
         <View style={styles.container}>
             {isLoading && <LoadingScreen/>}
-            <ScrollView>
+            {/* ส่วนหัว: อาจจะใส่โลโก้หรือเว้นที่ว่าง */}
+            <ScrollView style={styles.header}>
                 
             </ScrollView>
 
@@ -40,6 +41,7 @@ export default function LoginScreen(){
 
 };
 const styles = StyleSheet.create({
-    container:{}
+    container:{},
+    header:{}
 
 })

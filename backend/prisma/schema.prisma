@@ -16,6 +16,7 @@ model User {
  user_Id       String   @id @default(uuid())
   userName      String?
   email         String   @unique
+  password      String
   gender        String
   age           Float
   weight        Float

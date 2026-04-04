@@ -1,3 +1,7 @@
+⭐
+common /เก็บหน้าloadding หรือสิ่งที่โชว์ทับหน้าอื่น
+๊ui / ส่วนที่เก็บชิ้นส่วน(จิ๊กซอว์) เอาไว้ใช้ซ้ำๆในหลายหน้า 
+_________________________________________
 ✭✭✭ Tap Navigator
 ✭ npx expo install @react-navigation/material-top-tabs react-native-tab-view react-native-pager-view
 → การติดตั้งไลบรารีสำหรับทำ “แท็บด้านบน (Top Tabs)” ในแอป React Native (ผ่าน Expo)

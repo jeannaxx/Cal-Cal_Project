@@ -1,5 +1,6 @@
 ⭐ Intalls in project
 npm create vite@latest first-app --template react 
--> สร้างReact ใช้TypeScriptเพื่อให้ตรงกับโปรเจค  มีการตรวจตัวเเปรชนิดข้อมูล มากว่าJavascirpt 
+-> สร้างReact เลิอกใช้ TypeScript เพื่อให้ตรงกับโปรเจค  มีการตรวจตัวเเปรชนิดข้อมูล มากว่าJavascirpt 
+**Reactอัพใหม่ตลอด หน้าเปลี่ยนไปตลอด อะไรใหม่
 
 ⭐ อ่านเพิ่มเติม 
