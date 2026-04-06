@@ -220,3 +220,15 @@ Ex...
 - ชั้นกลาง: TouchableWithoutFeedback (คอยปิดคีย์บอร์ดเมื่อจิ้มที่ว่าง)
 - ชั้นใน: ScrollView (คอยให้ไถหน้าจอได้)
 - เนื้อหา: พวก TextFields และ CustomButton ของคุณจะอยู่ข้างในสุดครับ
+
+📁type CustomButtonProps = {
+  title: string;
+  onPress: () => void;
+  variant?: "primary" | "secondary" | "google" | "facebook" | "create"; 
+  size?: "sm" | "md" | "lg";
+};
+
+  -title: string;  ข้อความที่ปรากฏบนปุ่ม login sign in
+  -onPress: () => void; ฟังก์ชั่นที่ทำงานเมื่อมีการกดปุ่ม
+  -variant? หน้าการกำหนดรูปแบบสี หรือธีมของปุ่มตามดีไชน์/การจำกักคำด้วย ถ้าตังค่าไว้เช่นgoogleก็จะได้เเค่นี้ นอกนเหนือจะเเดง
+  -size?: "sm" | "md" | "lg"; ขนาดปุ่มsmall Medium Large 

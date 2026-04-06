@@ -1,10 +1,12 @@
+//หน้าเข้าสู่ระบบ มีหลายปุ่มนั้นเอง
+
 import React,{useState} from "react";
 import { View,StyleSheet,Text,ScrollView,KeyboardAvoidingView,Platform,TouchableWithoutFeedback } from "react-native";
 import { useRouter } from 'expo-router';
 //อันที่สร้างไว้
 // import TextFields from '../../component/TextFields';
 // import ButtonsInput from '../../component/ButtonsInput';
-import LoadingScreen from '../../component/common/LoadingScreen';
+import LoadingScreen from '../component/common/LoadingScreen';
 
 
 

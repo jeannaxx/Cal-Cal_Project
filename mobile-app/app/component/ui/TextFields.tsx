@@ -1,4 +1,6 @@
+//หน้าสมัครสมากชิก
 //สร้างฟิลด์ เเท๊กข้อความช่องต่างๆ
+//ศูยน์รวมของพวกบ๊อง
 import React, { useState } from "react";
 import {
   View,
@@ -11,11 +13,12 @@ import {
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
 import { supabase } from "../common/supabase";
-import { CustomButton } from "./CustomInput";
-
+import { CustomInput } from "./CustomInput";
+import { CustomButton } from "./CustomButton";
 interface FormData {
   userName: string;
   email: string;
@@ -209,53 +212,81 @@ export default function TextFields() {
     setTouched({});
   };
   return (
-    <KeyboardAvoidingView>
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1" keyboardVerticaoffset ={" "}
-      {Platform.OS === "ios" ? 0 : 20}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
-          className="flex-1 bg-[#FDE2E4]" // ใส่สีพื้นหลัง
-          contentContainerStyle={{ paddingBottom: 32 }} // ใส่ระยะห่างด้านล่างที่นี่
+          className="flex-1 bg-[#FDE2E4]"
+          contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Form Content */}
-          <View style={styles.container}>
-            <TextInput
-              placeholder="Username"
+          {/* Form Content - เรียกใช้แม่พิมพ์ที่เราสร้างไว้ */}
+          <View>
+            <CustomInput
+              label="Username"
               value={formData.userName}
               onChangeText={(value) => handleChange("userName", value)}
               onBlur={() => handleBlur("userName")}
-              style={[styles.input,touch.userName && errors.userName? { borderBottomColor: "red" }: {},
-              ]}
+              error={errors.userName}
+              touched={!!touch.userName}
             />
-            <TextInput
-              placeholder="Email" //โชว์ในช่อง สีบางๆ
-              placeholderTextColor="#A9A9A9"
-              style={styles.input}
+
+            <CustomInput
+              label="Email"
+              value={formData.email}
+              onChangeText={(value) => handleChange("email", value)}
+              onBlur={() => handleBlur("email")}
+              error={errors.email}
+              touched={!!touch.email}
             />
-            <TextInput
-              placeholder="Passsword" //โชว์ในช่อง สีบางๆ
-              placeholderTextColor="#A9A9A9"
-              style={styles.input}
+
+            <CustomInput
+              label="Password"
+              value={formData.password}
+              onChangeText={(value) => handleChange("password", value)}
+              onBlur={() => handleBlur("password")}
+              error={errors.password}
+              touched={!!touch.password}
+              secureTextEntry
             />
-            <TextInput
-              placeholder="ConfrimePasssword" //โชว์ในช่อง สีบางๆ
-              placeholderTextColor="#A9A9A9"
-              style={styles.input}
+
+            <CustomInput
+              label="Confirm Password"
+              value={formData.confirmPassword}
+              onChangeText={(value) => handleChange("confirmPassword", value)}
+              onBlur={() => handleBlur("confirmPassword")}
+              error={errors.confirmPassword}
+              touched={!!touch.confirmPassword}
+              secureTextEntry
             />
           </View>
-          <View>
-            <Text className="text-blue-700">
+
+          {/* ข้อความยอมรับเงื่อนไข */}
+          <View className="my-5">
+            <Text className="text-blue-700 text-center">
               เมื่อคุณกดปุ่มลงชื่อเข้าใช้เท่ากับว่าคุณได้อ่านเเละยอมรับ
             </Text>
-            <Text className="text-red-700 text-sm ">
+            <Text className="text-red-700 text-sm text-center">
               นโยบายความเป็นส่วนตัวเเละเงื่อนไขการใช้บริการ
             </Text>
           </View>
+
+          {/* ใส่ปุ่มที่เราสร้างไว้ (CustomButton) */}
+          <CustomButton
+            title="สร้างบัญชี"
+            onPress={handSubmit}
+            isLoading={isLoading}
+          />
+
+          {/* แถม: ปุ่มรีเซ็ต (ถ้าต้องการ) */}
+          <TouchableOpacity onPress={handleReset} className="mt-4">
+            <Text className="text-gray-500 text-center">ล้างข้อมูล</Text>
+          </TouchableOpacity>
         </ScrollView>
       </TouchableWithoutFeedback>
-      {/* ใส่ ปุ่มลากสุด */}
     </KeyboardAvoidingView>
   );
 } //ปิดใหญ่
