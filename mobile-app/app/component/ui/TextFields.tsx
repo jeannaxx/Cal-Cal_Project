@@ -19,6 +19,9 @@ import { Float } from "react-native/Libraries/Types/CodegenTypes";
 import { supabase } from "../common/supabase";
 import { CustomInput } from "./CustomInput";
 import { CustomButton } from "./CustomButton";
+import { useRouter } from 'expo-router';
+
+
 interface FormData {
   userName: string;
   email: string;
@@ -33,6 +36,8 @@ interface FormErrors {
 }
 
 export default function TextFields() {
+
+  const router = useRouter();
   //state เก็บตัวแปร From
   const [formData, setFormData] = useState<FormData>({
     userName: "",
@@ -71,7 +76,7 @@ export default function TextFields() {
         if (!value.trim()) {
           return "กรุณากรอกอีเมล";
         }
-        const emailRegex = /^[^\s@]+@[^|s@]+\.[^\s@]+$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) {
           return "รูปแบบอีเมลไม่ถูกต้อง";
         }
@@ -107,7 +112,7 @@ export default function TextFields() {
       const error = validateField(name, value);
       setErrors((prev) => ({
         ...prev,
-        [name]: value,
+        [name]: error ?? "",
       }));
     }
   };
@@ -156,38 +161,54 @@ export default function TextFields() {
   };
   //การsubmit
   const handSubmit = async () => {
-    //ปิดkeybord
     Keyboard.dismiss();
 
-    //Validate From
     if (!validateForm()) {
-      Alert.alert("ข้อมูลไม่ถูกต้อง", "กรุณาตรวจสอบข้อมูลเเละลองใหม่อีกครั้ง");
+      Alert.alert("ข้อมูลไม่ถูกต้อง", "กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง");
       return;
     }
-    //จำลองการส่งข้อมูล
+
     setIsLoading(true);
     try {
-      //ส่งข้อมูลไปที่supabase
-      // สมมติว่าตารางชื่อ 'profiles' หรือ 'users'
-      const { data, error } = await supabase
-        .from("User") //ชื่อตารางsupabase
-        .insert([
-          {
-            userName: formData.userName,
-            email: formData.email,
-            password: formData.password,
-            confirmPassword: formData.confirmPassword,
+      // 1. สมัครสมาชิกผ่าน Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            username: formData.userName, // เก็บ username ใน user metadata
           },
-        ]);
-      if (error) throw error; //ถ้าsupaพังให้ขึ้นมาทางerros ไปที่catch
+        },
+      });
 
-      Alert.alert("สำเร็จ!", "บันทึกจ้อมูลรียบร้อยเเล้ว");
-    } catch (err) {
-      //พัังจะเด้งมานี้
+      if (error) throw error;
+
+      // 2. ถ้าสมัครสำเร็จ บันทึก username ลงตาราง profiles
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from("profiles") // สร้างตารางนี้ใน Supabase
+          .insert([
+            {
+              id: data.user.id, // ใช้ id จาก Auth
+              username: formData.userName,
+              email: formData.email,
+            },
+          ]);
+
+        if (profileError) throw profileError;
+      }
+
+      Alert.alert(
+        "สมัครสมาชิกสำเร็จ! 🎉",
+        "กรุณาตรวจสอบอีเมลเพื่อยืนยันตัวตน",
+        [{ text: "ตกลง", onPress: () => router.push("/register") }],
+      );
+
+      handleReset();
+    } catch (err: any) {
       console.error(err);
-      Alert.alert("เกิดข้อผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้");
+      Alert.alert("เกิดข้อผิดพลาด", err.message || "ไม่สามารถสมัครสมาชิกได้");
     } finally {
-      //ส่วนที่ต้องทำเสมอ/ไม่สำรเ็จเเละสำเร็จ ก็ปิด Loaddingเสมอ
       setIsLoading(false);
     }
   };
@@ -223,7 +244,7 @@ export default function TextFields() {
           contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Form Content - เรียกใช้แม่พิมพ์ที่เราสร้างไว้ */}
+          {/* ใช้แม่พิมพ์ที่เราสร้างไว้ */}
           <View>
             <CustomInput
               label="Username"
@@ -281,7 +302,7 @@ export default function TextFields() {
             isLoading={isLoading}
           />
 
-          {/* แถม: ปุ่มรีเซ็ต (ถ้าต้องการ) */}
+          {/* ปุ่มรีเซ็ต */}
           <TouchableOpacity onPress={handleReset} className="mt-4">
             <Text className="text-gray-500 text-center">ล้างข้อมูล</Text>
           </TouchableOpacity>

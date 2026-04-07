@@ -10,6 +10,7 @@ interface CustomButtonProps{
   onPress :() => void;
   variant?: "primary" | "secondary" | "google" | "facebook" |"create";  //การกำหนดปุ่มตามประเภท
   size?: "sm"|"md" | "lg"; //ขนาดปุ่มม 
+  isLoading?: boolean;
 };
 
 export const CustomButton =({
