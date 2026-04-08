@@ -18,7 +18,7 @@ export default function LoadingScreen() {
     <View style={styles.overlay}>
       {/*ตัวรูปภาพ*/}
       <Image
-        source={require("../../../assets/images/Loading.png")}
+        source={require("../../../assets/Look.png")}
         style={styles.image}
         resizeMode="contain"
       />

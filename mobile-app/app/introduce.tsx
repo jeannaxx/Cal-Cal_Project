@@ -11,10 +11,10 @@ export default function Introduce() {
         style={styles.image}
       />
       <Text style={styles.title}>Cal-Cal</Text>
-      <Text style={styles.subtitle}>สวัสดีจ้า คนเก่ง!!!</Text>
+      <Text style={styles.subtitle}>สวัสดี ฉัน "ลูลู่"</Text>
       <Text style={styles.desc}>
-        แอพเพื่อสุขภาพและการโภชนาที่ช่วยคนไทย{'\n'}
-        ทำตามเป้าหมายการลดน้ำหนักกัน 
+        เป็นเพื่อนที่คอยอยู่ข้างๆ และช่วยให้การลดน้ำหนักของคุณ {'\n'}
+        เราจะค่อยๆไปด้วยกัน แบบไม่กดดันนะ
       </Text>
 
       <TouchableOpacity

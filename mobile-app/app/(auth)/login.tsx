@@ -44,7 +44,7 @@ export default function LoginScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>สมัครสมากชิก</Text>
             <Text style={styles.subtitle}>สวัสดีจ้า คนเก่ง!</Text>
 
             <TextInput
@@ -105,10 +105,10 @@ export default function LoginScreen() {
               <Text style={styles.btnWhiteText}>สร้างบัญชี</Text>
             </TouchableOpacity>
 
-            <Text style={styles.policy}>
+            {/* <Text style={styles.policy}>
               เมื่อคุณกดปุ่มลงชื่อเข้าใช้เท่ากับว่าคุณได้อ่านและยอมรับ{'\n'}
               <Text style={styles.policyLink}>นโยบายความเป็นส่วนตัวและเงื่อนไขการใช้บริการ</Text>
-            </Text>
+            </Text> */}
 
           </ScrollView>
         </TouchableWithoutFeedback>
@@ -116,6 +116,7 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FDE2E4' },

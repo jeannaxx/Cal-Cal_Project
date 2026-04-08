@@ -1,0 +1,1 @@
+///← verify JWT จาก Supabase

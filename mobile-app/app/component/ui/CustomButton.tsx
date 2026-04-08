@@ -4,6 +4,7 @@
 
 import React from "react";
 import { StyleSheet, TouchableOpacity,Text,ActivityIndicator } from "react-native";
+import { ReactNode } from 'react';
 
 interface CustomButtonProps{
   title : string;
@@ -27,6 +28,7 @@ export const CustomButton =({
     facebook: "bg-[#42a5f5] active:bg-blue-600", // ปุ่ม Facebook
     create: "bg-[#FF8FB1] active:bg-pink-400", // ปุ่มสร้างบัญชี (สีชมพู)
   };
+  
   const sizeClasses = {
     sm: "px-2 py-1 text-sm",
     md: "px-4 py-3 text-base",
