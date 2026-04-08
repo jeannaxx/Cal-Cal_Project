@@ -7,14 +7,14 @@ export default function Introduce() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/images/Recomment.png')} // เปลี่ยน path รูปให้ตรง
+        source={require('../assets/Lesgo.png')} // เปลี่ยน path รูปให้ตรง
         style={styles.image}
       />
       <Text style={styles.title}>Cal-Cal</Text>
       <Text style={styles.subtitle}>สวัสดีจ้า คนเก่ง!!!</Text>
       <Text style={styles.desc}>
         แอพเพื่อสุขภาพและการโภชนาที่ช่วยคนไทย{'\n'}
-        ทำตามเป้าหมายการลดน้ำหนักกัน
+        ทำตามเป้าหมายการลดน้ำหนักกัน 
       </Text>
 
       <TouchableOpacity
