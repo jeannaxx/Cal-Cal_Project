@@ -3,13 +3,21 @@
 //จัดอันดับหน้ ตรงนี้ ว่าหน้าไหนไปหน้าไหน 
 import { Stack } from 'expo-router';
 
-export default function RootLayout() {
+export default function OnboardingLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        contentStyle: { backgroundColor: '#fff5f7' },
+      }}
+    >
       <Stack.Screen name="index" />
-      <Stack.Screen name="introduce" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="info" />
+      <Stack.Screen name="activity" />
+      <Stack.Screen name="result" />
+      <Stack.Screen name="confirm" />
+      <Stack.Screen name="done" />
     </Stack>
   );
 }

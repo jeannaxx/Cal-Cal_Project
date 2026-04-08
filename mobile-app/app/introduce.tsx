@@ -14,7 +14,7 @@ export default function Introduce() {
       <Text style={styles.subtitle}>สวัสดีจ้า คนเก่ง!!!</Text>
       <Text style={styles.desc}>
         แอพเพื่อสุขภาพและการโภชนาที่ช่วยคนไทย{'\n'}
-        ทำตามเป้าหมายการลดน้ำหนักแล้วมาคาย
+        ทำตามเป้าหมายการลดน้ำหนักกัน
       </Text>
 
       <TouchableOpacity
