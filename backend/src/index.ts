@@ -1,24 +1,15 @@
-import dotenv from 'dotenv';
-dotenv.config(); // ต้องอยู่บนสุดก่อน import อื่น
+import express from 'express'
+import dotenv from 'dotenv'
+import authRoutes from './routes/auth.route'
 
-import express from 'express';
-import cors from 'cors';
-import { PrismaClient } from '../generated/prisma';
-import { createClient } from '@supabase/supabase-js';
+dotenv.config()
 
-export const prisma = new PrismaClient();
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
+const app = express()
+app.use(express.json())
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+app.use('/api/auth', authRoutes)
 
-import authRouter from './routes/auth.route';
-app.use('/auth', authRouter);
-
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server running on port ${process.env.PORT || 3000}`);
-});
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+  console.log(`✅ Server รันที่ http://localhost:${PORT}`)
+})

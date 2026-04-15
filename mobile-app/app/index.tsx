@@ -1,4 +1,4 @@
-//ตัวขึ้นหน้าโมบาย ตัวหลัก
+//ตัวขึ้นหน้าโมบาย ตัวหลัก นห้าเรอริ่มต้น
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';

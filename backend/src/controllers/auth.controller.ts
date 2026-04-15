@@ -1,86 +1,57 @@
-import { Request, Response } from 'express';
-import { prisma, supabase } from '../index';
-import { PrismaClient } from '../../generated/prisma'; // แก้ตรงนี้
-// ─── Register ───────────────────────────────────────────
+import { Request, Response } from 'express'
+import { supabase } from '../supabaseClient'
+
+// Register
 export const register = async (req: Request, res: Response) => {
-  const { email, password, userName } = req.body;
+  const { email, password, username } = req.body
 
-  // validate
-  if (!email || !password) {
-    return res.status(400).json({ message: 'กรุณากรอก email และ password' });
-  }
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    user_metadata: { username },
+  })
 
-  try {
-    // 1. สร้าง user ใน Supabase Auth
-    const { data, error } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // ไม่ต้องยืนยัน email
-    });
+  if (error) return res.status(400).json({ error: error.message })
 
-    if (error) throw error;
+  // บันทึก profile ลง table users
+  await supabase.from('users').insert({
+    id: data.user.id,
+    email,
+    username,
+  })
 
-    // 2. บันทึก profile ลง Prisma (PostgreSQL)
-    const user = await prisma.user.create({
-      data: {
-        user_Id: data.user.id, // ใช้ id เดียวกับ Supabase Auth
-        email,
-        userName: userName ?? null,
-        password: '',   // Supabase จัดการ password เอง ไม่เก็บซ้ำ
-        gender: '',
-        age: 0,
-        weight: 0,
-        height: 0,
-        targetWeight: 0,
-        planType: '',
-        weeklyGoal: 0,
-        calculatedCal: 0,
-      },
-    });
+  return res.status(201).json({ message: 'สมัครสมาชิกสำเร็จ', user: data.user })
+}
 
-    return res.status(201).json({
-      message: 'สมัครสมาชิกสำเร็จ',
-      user: {
-        id: user.user_Id,
-        email: user.email,
-        userName: user.userName,
-      },
-    });
-
-  } catch (err: any) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
-// ─── Login ───────────────────────────────────────────────
+// Login
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'กรุณากรอก email และ password' });
-  }
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
-  try {
-    // 1. login ผ่าน Supabase Auth → ได้ JWT token กลับมา
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  if (error) return res.status(401).json({ error: error.message })
 
-    if (error) throw error;
+  return res.status(200).json({
+    message: 'เข้าสู่ระบบสำเร็จ',
+    session: data.session,   // มี access_token อยู่ตรงนี้
+    user: data.user,
+  })
+}
 
-    // 2. ดึง profile จาก Prisma
-    const profile = await prisma.user.findUnique({
-      where: { user_Id: data.user.id },
-    });
+// Get user profile
+export const getProfile = async (req: Request, res: Response) => {
+  const userId = (req as any).userId  // มาจาก auth middleware
 
-    return res.status(200).json({
-      message: 'เข้าสู่ระบบสำเร็จ',
-      token: data.session.access_token,   // ส่ง JWT กลับไปให้ mobile
-      user: profile,
-    });
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single()
 
-  } catch (err: any) {
-    return res.status(401).json({ message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' });
-  }
-};
+  if (error) return res.status(404).json({ error: 'ไม่พบผู้ใช้' })
+
+  return res.status(200).json(data)
+}

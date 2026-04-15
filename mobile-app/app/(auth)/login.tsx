@@ -72,8 +72,8 @@ export default function LoginScreen() {
             {/* เข้าสู่ระบบ */}
             <TouchableOpacity
               style={[styles.btnMain, isLoading && styles.btnDisabled]}
-              onPress={handleLogin}
               disabled={isLoading}
+              onPress={() => router.push("/gender")}
             >
               <Text style={styles.btnMainText}>
                 {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}

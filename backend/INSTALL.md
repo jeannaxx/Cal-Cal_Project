@@ -11,3 +11,11 @@
 ติดตั้ง dependencies
 ✭ npm install -D typescript ts-node @types/express @types/cors @types/node
 ✭ npm install @supabase/supabase-js @prisma/client prisma express cors dotenv
+
+การติ้กตั้วbackrend
+cd backend
+npm install @supabase/supabase-js dotenv
+ติ้ดตั้monbile 
+cd mobile-app
+npm install @supabase/supabase-js @react-native-async-storage/async-storage
+npx expo install expo-secure-store

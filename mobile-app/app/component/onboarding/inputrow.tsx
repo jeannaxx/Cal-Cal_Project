@@ -70,7 +70,7 @@ export default function RegisterScreen() {
 
         <TouchableOpacity
           style={styles.btnMain}
-          onPress={() => router.push("/(auth)/login")}
+          onPress={() => router.push("./(tabs)/index")}
         >
           <Text style={styles.btnMainText}>สร้างบัญชี</Text>
         </TouchableOpacity>
