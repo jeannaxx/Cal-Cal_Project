@@ -10,6 +10,8 @@ import {
 } from "react-native";
 
 
+
+
 //ดึงขนาดหน้จอให้ทับพอดี ในตอนดาวโหลด
 const { width, height } = Dimensions.get("window");
 
@@ -18,7 +20,7 @@ export default function LoadingScreen() {
     <View style={styles.overlay}>
       {/*ตัวรูปภาพ*/}
       <Image
-        source={require("../../../assets/Look.png")}
+        source={require("../../../assets/Lesgo.png")}
         style={styles.image}
         resizeMode="contain"
       />

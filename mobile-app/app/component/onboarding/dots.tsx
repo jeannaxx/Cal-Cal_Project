@@ -1,21 +1,47 @@
-import { View, StyleSheet } from "react-native";
+import React from "react";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 
-interface StepDotsProps {
-  currentStep: number;
-  totalSteps?: number;
-}
+export const StepDots = ({ currentStep }: { currentStep: number }) => {
+  const router = useRouter();
 
-export const StepDots = ({ currentStep, totalSteps = 4 }: StepDotsProps) => (
-  <View style={styles.container}>
-    {[...Array(totalSteps)].map((_, i) => (
-      <View key={i} style={[styles.dot, i === currentStep ? styles.active : styles.inactive]} />
-    ))}
-  </View>
-);
+  // กำหนดเส้นทางของแต่ละจุด (0 = gender, 1 = info-input, 2 = goal, 3 = summary)
+  const steps = ["/gender", "/info-input", "/goal", "/summary"];
+
+  return (
+    <View style={styles.container}>
+      {steps.map((route, index) => (
+        <TouchableOpacity
+          key={index}
+          onPress={() => router.push(route as any)} // กดที่จุดเพื่อย้อนกลับหรือไปหน้านั้นๆ
+          style={[
+            styles.dot,
+            currentStep === index ? styles.activeDot : styles.inactiveDot,
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', justifyContent: 'center', marginTop: 30 },
-  dot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 5 },
-  active: { backgroundColor: '#c23b6a' },
-  inactive: { backgroundColor: '#f9c4d0' },
+  container: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  activeDot: {
+    backgroundColor: "#c23b6a", // สีเข้มเมื่ออยู่หน้านั้น
+    width: 12, // ขยายขนาดเล็กน้อยให้รู้ว่าอยู่หน้านี้
+    height: 12,
+  },
+  inactiveDot: {
+    backgroundColor: "#f9c4d0", // สีอ่อนสำหรับหน้าอื่น
+  },
 });

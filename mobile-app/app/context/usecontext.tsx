@@ -1,24 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
-interface UserData {
-  gender: 'M' | 'F' | '';
-  age: string;
-  height: string;
-  weight: string;
-  goalWeight: string;
-  rate: number;
-}
+const UserContext = createContext<any>(null);
 
-interface UserContextType {
-  userData: UserData;
-  setUserData: React.Dispatch<React.SetStateAction<UserData>>;
-}
-
-const UserContext = createContext<UserContextType | undefined>(undefined);
-
-export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [userData, setUserData] = useState<UserData>({
-    gender: '', age: '', height: '', weight: '', goalWeight: '', rate: 0.33,
+export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+  const [userData, setUserData] = useState({
+    gender: "", // 'M' หรือ 'F'
+    age: "",
+    height: "",
+    weight: "",
+    deficit: 0 // พลังงานที่หักออกตามเป้าหมาย
   });
 
   return (
@@ -28,8 +18,4 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) throw new Error('useUser must be used within UserProvider');
-  return context;
-};
+export const useUser = () => useContext(UserContext);
