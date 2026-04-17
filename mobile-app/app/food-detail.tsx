@@ -44,18 +44,6 @@ export default function FoodDetailScreen() {
          <TouchableOpacity style={[styles.btn, {backgroundColor: '#a8e6cf'}]} onPress={handleSave}><Text style={styles.btnText}>บันทึกลงไดอารี่</Text></TouchableOpacity>
       </View>
 
-      <Text style={styles.sectionTitle}>ปริมาณแคลอรี่เปรียบเทียบต่อ 1 ที่</Text>
-      
-      {/* กิจกรรมเผาผลาญ */}
-      <View style={styles.activityRow}>
-         {[{n:'walk', t:'43 นาที'}, {n:'run', t:'13 นาที'}, {n:'bicycle', t:'19 นาที'}, {n:'water', t:'43 นาที'}].map((item, i) => (
-           <View key={i} style={styles.actItem}>
-              <View style={styles.actCircle}><Ionicons name={item.n as any} size={24} color="#666" /></View>
-              <Text style={styles.actText}>{item.t}</Text>
-           </View>
-         ))}
-      </View>
-
       {/* Modal แจ้งเตือนจำนวนไม่ถูกต้อง */}
       <Modal visible={showError} transparent animationType="fade">
         <View style={styles.modalOverlay}>

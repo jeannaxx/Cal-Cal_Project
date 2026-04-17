@@ -87,15 +87,7 @@ export default function LoginScreen() {
               <View style={styles.line} />
             </View>
 
-            {/* Google */}
-            <TouchableOpacity style={styles.btnGoogle}>
-              <Text style={styles.btnGoogleText}>เข้าสู่ระบบด้วย Google</Text>
-            </TouchableOpacity>
-
-            {/* Facebook */}
-            <TouchableOpacity style={styles.btnFacebook}>
-              <Text style={styles.btnWhiteText}>เข้าสู่ระบบด้วย Facebook</Text>
-            </TouchableOpacity>
+           
 
             {/* สร้างบัญชี */}
             <TouchableOpacity
@@ -139,7 +131,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14, alignItems: 'center', marginBottom: 4,
   },
   btnDisabled: { backgroundColor: '#a5d6a7' },
-  btnMainText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  btnMainText: { color: '#fff', fontSize: 15, fontWeight: '600' },
 
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
   line: { flex: 1, height: 1, backgroundColor: '#ddd' },
@@ -160,8 +152,9 @@ const styles = StyleSheet.create({
   btnRegister: {
     backgroundColor: '#FF6B9D', borderRadius: 30,
     paddingVertical: 13, alignItems: 'center', marginBottom: 20,
+    
   },
-  btnWhiteText: { color: '#fff', fontWeight: '500' },
+  btnWhiteText: { color: '#ffffff', fontWeight: '600',fontSize:15},
 
   policy: {
     fontSize: 11, color: '#4a90d9', textAlign: 'center', lineHeight: 18,
