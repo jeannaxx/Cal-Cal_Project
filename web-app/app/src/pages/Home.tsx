@@ -21,14 +21,13 @@ export default function Home() {
       {/* ขวา — content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 md:px-16 py-10 gap-5">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-700 tracking-wide text-center">
-          Cel-Cel  Website
+          Cal-Cal Website
         </h1>
         <p className="text-sm text-gray-400 text-center leading-relaxed">
           เว็บไซต์สำหรับดูแลสุขภาพ<br />และติดตามความก้าวหน้าของคุณทุกวัน
         </p>
         <div className="w-full max-w-xs flex flex-col gap-3 mt-2">
           <Button variant="pink" onClick={() => navigate('/login')}>เข้าสู่ระบบ</Button>
-          <Button variant="white" onClick={() => navigate('/register')}>สมัครสมาชิก</Button>
         </div>
       </div>
 
