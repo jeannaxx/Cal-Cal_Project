@@ -1,12 +1,13 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
 
 model User {
   user_Id       String          @id @default(uuid())
@@ -73,13 +74,13 @@ model ExercisesLogs {
   user      User      @relation(fields: [user_Id], references: [user_Id])
 }
 
-model Ariricles {
+model Articles {
   article_Id  Int      @id @default(autoincrement())
-  title       String
-  articeLink  String?
-  articeimage String?
-  creditName  String?
-  pushData    DateTime @default(now())
+  title         String
+  articleLink   String?
+  articleImage  String?
+  creditName    String?
+  pushData      DateTime @default(now())
 }
 
 model Walk {

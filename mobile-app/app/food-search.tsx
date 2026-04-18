@@ -1,88 +1,123 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, Image } from "react-native";
+import React, { useState, useEffect, useMemo } from "react";
+import { View, Text, SectionList, StyleSheet } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "../app/component/common/supabase"; // ไฟล์ที่เราสร้างไว้คราวก่อน
+import { FoodListItem } from "./component/food/FoodListItem";
+import { SearchHeader } from "./component/food/SearchHeader";
+import { ActionMenu } from "./component/food/ActionMenu";
+import { EmptyState } from "./component/common/EmptyState";
 
 export default function FoodSearchScreen() {
   const router = useRouter();
-  const { meal } = useLocalSearchParams(); // รับค่ามื้ออาหาร (เช้า/เที่ยง/เย็น)
+  const { meal, category } = useLocalSearchParams(); // รับค่ามื้ออาหาร และหมวดหมู่
   const [searchQuery, setSearchQuery] = useState("");
   const [foods, setFoods] = useState<any[]>([]);
 
   // ฟังก์ชันค้นหาข้อมูลจาก Supabase
   const handleSearch = async (text: string) => {
     setSearchQuery(text);
-    const { data, error } = await supabase
-      .from("Food") // ชื่อตารางใน Prisma
-      .select("*")
-      .ilike("name", `%${text}%`);
+    let query = supabase.from("Food").select("*").ilike("name", `%${text}%`);
+    
+    // ถ้ามีการเลือกหมวดหมู่มา ให้กรองเพิ่ม
+    if (category) {
+      query = query.eq("category", category);
+    }
+
+    const { data, error } = await query;
     
     if (!error) setFoods(data);
   };
 
-  useEffect(() => { handleSearch(""); }, []);
+  useEffect(() => { handleSearch(""); }, [category]); // โหลดใหม่เมื่อหมวดหมู่เปลี่ยน
+
+  // ฟังก์ชันล้างการกรองหมวดหมู่
+  const clearCategory = () => {
+    router.setParams({ category: undefined });
+  };
+
+  // ฟังก์ชันสลับมื้ออาหาร
+  const handleMealChange = () => {
+    const mealOrder = ["Breakfast", "Lunch", "Dinner", "Snack"];
+    const currentMeal = (meal as string) || "Breakfast";
+    const currentIndex = mealOrder.indexOf(currentMeal);
+    
+    // หา Index ถัดไปในรายการ (ถ้าถึงอันสุดท้ายจะวนกลับไป 0)
+    const nextIndex = (currentIndex === -1 || currentIndex === mealOrder.length - 1) ? 0 : currentIndex + 1;
+    router.setParams({ meal: mealOrder[nextIndex] });
+  };
+
+  // แปลงชื่อมื้ออาหารเป็นภาษาไทยสำหรับหัวข้อ
+  const getMealTitle = () => {
+    if (category) return category as string;
+    switch (meal) {
+      case "Breakfast": return "อาหารเช้า";
+      case "Lunch": return "อาหารเที่ยง";
+      case "Dinner": return "อาหารเย็น";
+      case "Snack": return "ของว่าง/อื่นๆ";
+      default: return "ค้นหาอาหาร";
+    }
+  };
+
+  // จัดกลุ่มข้อมูลอาหารแยกตามหมวดหมู่สำหรับ SectionList
+  const sections = useMemo(() => {
+    const groups: { [key: string]: any[] } = {};
+    
+    foods.forEach((item) => {
+      const cat = item.category || "ทั่วไป";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(item);
+    });
+
+    return Object.keys(groups).sort().map((key) => ({
+      title: key,
+      data: groups[key],
+    }));
+  }, [foods]);
 
   return (
     <View style={styles.container}>
-      {/* Header สีชมพู */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>อาหาร{meal === "Breakfast" ? "เช้า" : "เที่ยง"}</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      {/* ส่วนหัวและช่องค้นหา (Component แยก) */}
+      <SearchHeader
+        title={getMealTitle()}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
+        onBack={() => router.back()}
+        meal={meal as string}
+        category={category as string}
+        onClearCategory={clearCategory}
+      />
 
-      {/* ช่องค้นหา */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#ccc" />
-          <TextInput 
-            placeholder="ค้นหาจากชื่อ..." 
-            style={styles.input}
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-        </View>
-        <View style={styles.tabRow}>
-          <Text style={styles.activeTab}>ค้นหา</Text>
-          <Text style={styles.tab}>รายการโปรด</Text>
-          <Text style={styles.tab}>รายการของฉัน</Text>
-        </View>
-      </View>
-
-      {/* แถบไอคอน 4 อัน */}
-      <View style={styles.iconMenu}>
-        {[
-          { label: "หมวดหมู่", icon: "grid-outline" },
-          { label: "ไดอารี่", icon: "book-outline" },
-          { label: "ถ่ายรูป", icon: "camera-outline", action: () => alert("เปิดกล้อง AI") },
-          { label: "เปลี่ยนมื้อ", icon: "swap-horizontal-outline" }
-        ].map((item, index) => (
-          <TouchableOpacity key={index} style={styles.iconBtn} onPress={item.action}>
-            <View style={styles.iconBox}><Ionicons name={item.icon as any} size={24} color="#f472a0" /></View>
-            <Text style={styles.iconLabel}>{item.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* แถบเมนูไอคอน (Component แยก) */}
+      <ActionMenu onChangeMeal={handleMealChange} />
 
       {/* รายการอาหาร */}
-      <FlatList
-        data={foods}
+      <SectionList
+        sections={sections}
         keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            <Text style={styles.listHeaderTitle}>
+              {searchQuery ? "ผลการค้นหา" : "เมนูอาหารทั่วไป"}
+            </Text>
+          </View>
+        }
+        ListEmptyComponent={
+          <EmptyState 
+            message={searchQuery 
+              ? `ลูลู่หา "${searchQuery}" ไม่เจอเลยค่ะ\nลองเปลี่ยนคำค้นหาดูนะคะ` 
+              : "ยังไม่มีรายการอาหารในส่วนนี้จ้า"} 
+          />
+        }
+        renderSectionHeader={({ section: { title } }) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionHeaderTitle}>{title}</Text>
+          </View>
+        )}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.foodItem} 
-            onPress={() => router.push({ pathname: "/food-detail", params: { id: item.id } })}
-          >
-            <View style={styles.foodImgPlaceholder} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.foodName}>{item.name}</Text>
-              <Text style={styles.foodSub}>10% ของแคลอรี่ที่ควรบริโภคต่อวัน</Text>
-            </View>
-            <Text style={styles.foodCal}>{item.calories} <Text style={{ fontSize: 10 }}>kcal</Text></Text>
-          </TouchableOpacity>
+          <FoodListItem 
+            item={item} 
+            onPress={() => router.push({ pathname: "/food-detail", params: { id: item.id } })} 
+          />
         )}
       />
     </View>
@@ -91,21 +126,8 @@ export default function FoodSearchScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  header: { backgroundColor: "#f472a0", height: 100, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 15, paddingTop: 40 },
-  headerTitle: { color: "#fff", fontSize: 20, fontWeight: "bold" },
-  searchSection: { backgroundColor: "#f472a0", paddingHorizontal: 20, paddingBottom: 10 },
-  searchBar: { backgroundColor: "#fff", borderRadius: 25, flexDirection: "row", alignItems: "center", paddingHorizontal: 15, height: 45 },
-  input: { flex: 1, marginLeft: 10 },
-  tabRow: { flexDirection: "row", justifyContent: "space-around", marginTop: 15 },
-  tab: { color: "#fff", opacity: 0.7 },
-  activeTab: { color: "#fff", fontWeight: "bold", borderBottomWidth: 2, borderBottomColor: "#fff" },
-  iconMenu: { flexDirection: "row", justifyContent: "space-around", paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  iconBtn: { alignItems: "center" },
-  iconBox: { width: 50, height: 50, backgroundColor: "#fff", elevation: 2, borderRadius: 10, justifyContent: "center", alignItems: "center", marginBottom: 5 },
-  iconLabel: { fontSize: 12, color: "#666" },
-  foodItem: { flexDirection: "row", alignItems: "center", padding: 15, borderBottomWidth: 1, borderBottomColor: "#f9f9f9" },
-  foodImgPlaceholder: { width: 50, height: 50, backgroundColor: "#eee", borderRadius: 25, marginRight: 15 },
-  foodName: { fontSize: 16, fontWeight: "bold" },
-  foodSub: { fontSize: 10, color: "#999" },
-  foodCal: { fontSize: 18, fontWeight: "bold", color: "#f472a0" }
+  listHeader: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 },
+  listHeaderTitle: { fontSize: 18, fontWeight: "bold", color: "#f472a0" },
+  sectionHeader: { backgroundColor: "#f9f9f9", paddingHorizontal: 20, paddingVertical: 8 },
+  sectionHeaderTitle: { fontSize: 14, fontWeight: "bold", color: "#888" },
 });
