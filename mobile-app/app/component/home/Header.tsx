@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // ใช้ Icon Library
 
-export const Header = ({ onOpenMenu }: { onOpenMenu?: () => void }) => {
+export const Header = ({ onOpenMenu, onOpenCalendar }: { onOpenMenu?: () => void; onOpenCalendar?: () => void }) => {
   return (
     <View style={styles.header}>
       {/* 1. ปุ่มเมนูด้านซ้าย */}
@@ -17,7 +17,7 @@ export const Header = ({ onOpenMenu }: { onOpenMenu?: () => void }) => {
       <Text style={styles.headerTitle}>CAL-CAL</Text>
       
       {/* 3. ไอคอนปฏิทินทางขวา */}
-      <TouchableOpacity style={styles.calendarBtn}>
+      <TouchableOpacity onPress={onOpenCalendar} style={styles.calendarBtn}>
         <Ionicons name="calendar-outline" size={26} color="#fff" />
       </TouchableOpacity>
     </View>

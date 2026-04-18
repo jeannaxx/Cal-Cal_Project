@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal } from "react-native";
 import { useRouter } from "expo-router";
 // นำเข้า SafeAreaView จากตัวนี้แทน (ตัวที่อาจารย์จะไม่ขีดฆ่า)
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "./context/usecontext"; 
 import { StepDots } from "./component/onboarding/dots"; 
+import { Ionicons } from "@expo/vector-icons";
 
 export default function InfoInputScreen() {
   const router = useRouter();
   const { userData, setUserData } = useUser();
+  const [alertVisible, setAlertVisible] = useState(false);
   
   // ใช้ local state เพื่อความไหลลื่นในการพิมพ์
   const [localInfo, setLocalInfo] = useState({
@@ -38,7 +40,7 @@ export default function InfoInputScreen() {
       });
       router.push("/goal");
     } else {
-      Alert.alert("กรอกข้อมูลไม่ครบ", "กรุณากรอกอายุ ส่วนสูง และน้ำหนักด้วยนะคะ");
+      setAlertVisible(true);
     }
   };
 
@@ -75,6 +77,22 @@ export default function InfoInputScreen() {
           <StepDots currentStep={1} />
         </View>
       </View>
+
+      {/* Cute Alert Modal */}
+      <Modal visible={alertVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.alertIconBox}>
+              <Ionicons name="warning" size={40} color="#FF85A2" />
+            </View>
+            <Text style={styles.modalTitle}>ข้อมูลยังไม่ครบจ้า</Text>
+            <Text style={styles.modalSub}>กรุณากรอกข้อมูลส่วนตัวให้ครบถ้วน{'\n'}เพื่อให้ลูลู่ช่วยดูแลคุณได้ดีที่สุดนะคะ</Text>
+            <TouchableOpacity style={styles.modalBtn} onPress={() => setAlertVisible(false)}>
+              <Text style={styles.modalBtnText}>โอเคเลย!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -92,5 +110,13 @@ const styles = StyleSheet.create({
   footer: { marginTop: 50, alignItems: 'center' },
   btnNext: { backgroundColor: '#fff', width: 220, paddingVertical: 14, borderRadius: 30, elevation: 3, alignItems: 'center', marginTop: 50 }, // Moved marginTop from footer
   btnNextText: { color: '#f472a0', fontWeight: 'bold', fontSize: 16 }, 
-  dotsWrapper: { position: 'absolute', bottom: 50, left: 0, right: 0, alignItems: 'center' }
+  dotsWrapper: { position: 'absolute', bottom: 50, left: 0, right: 0, alignItems: 'center' },
+  // Modal Styles (ดีไซน์เดียวกับหน้า gender)
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(255, 133, 162, 0.2)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { backgroundColor: '#fff', width: '80%', padding: 30, borderRadius: 40, alignItems: 'center', elevation: 10, shadowColor: '#FF85A2', shadowOpacity: 0.2, shadowRadius: 15 },
+  alertIconBox: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#FFF0F3', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: '#c23b6a', marginBottom: 10 },
+  modalSub: { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 20, marginBottom: 25 },
+  modalBtn: { backgroundColor: '#FF85A2', paddingVertical: 12, paddingHorizontal: 40, borderRadius: 25 },
+  modalBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 });

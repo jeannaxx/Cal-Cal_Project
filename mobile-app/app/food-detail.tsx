@@ -1,13 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "./component/common/supabase";
 
 export default function FoodDetailScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams();
   const [amount, setAmount] = useState("1");
   const [showError, setShowError] = useState(false);
-  const baseCal = 260; // สมมติค่าจาก Supabase
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [foodData, setFoodData] = useState<any>(null);
+
+  // โหลดข้อมูลอาหารและสถานะรายการโปรดจาก Supabase
+  useEffect(() => {
+    const fetchFoodDetail = async () => {
+      const { data, error } = await supabase
+        .from("Food")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (data && !error) {
+        setFoodData(data);
+        setIsFavorite(data.is_favorite);
+      }
+    };
+
+    if (id) fetchFoodDetail();
+  }, [id]);
 
   const handleSave = () => {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
@@ -18,12 +39,37 @@ export default function FoodDetailScreen() {
     }
   };
 
+  // Logic สำหรับกดปุ่มรูปหัวใจ
+  const toggleFavorite = async () => {
+    const nextStatus = !isFavorite;
+    
+    // อัปเดตข้อมูลใน Supabase
+    const { error } = await supabase
+      .from("Food")
+      .update({ is_favorite: nextStatus })
+      .eq("id", id);
+
+    if (!error) {
+      setIsFavorite(nextStatus);
+    } else {
+      alert("ไม่สามารถบันทึกรายการโปรดได้ในขณะนี้");
+    }
+  };
+
+  const baseCal = foodData?.calories || 0;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color="#fff" /></TouchableOpacity>
-        <Text style={styles.headerTitle}>ข้าวสวย 100 กรัม</Text>
-        <Ionicons name="star" size={24} color="#ff9f43" />
+        <Text style={styles.headerTitle}>{foodData?.name || "กำลังโหลด..."}</Text>
+        <TouchableOpacity onPress={toggleFavorite}>
+          <Ionicons 
+            name={isFavorite ? "heart" : "heart-outline"} 
+            size={28} 
+            color={isFavorite ? "#FF4D4D" : "#fff"} 
+          />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
@@ -42,18 +88,6 @@ export default function FoodDetailScreen() {
       <View style={styles.btnRow}>
          <TouchableOpacity style={[styles.btn, {backgroundColor: '#f4a4bc'}]}><Text style={styles.btnText}>บันทึก/ค้นหาต่อ</Text></TouchableOpacity>
          <TouchableOpacity style={[styles.btn, {backgroundColor: '#a8e6cf'}]} onPress={handleSave}><Text style={styles.btnText}>บันทึกลงไดอารี่</Text></TouchableOpacity>
-      </View>
-
-      <Text style={styles.sectionTitle}>ปริมาณแคลอรี่เปรียบเทียบต่อ 1 ที่</Text>
-      
-      {/* กิจกรรมเผาผลาญ */}
-      <View style={styles.activityRow}>
-         {[{n:'walk', t:'43 นาที'}, {n:'run', t:'13 นาที'}, {n:'bicycle', t:'19 นาที'}, {n:'water', t:'43 นาที'}].map((item, i) => (
-           <View key={i} style={styles.actItem}>
-              <View style={styles.actCircle}><Ionicons name={item.n as any} size={24} color="#666" /></View>
-              <Text style={styles.actText}>{item.t}</Text>
-           </View>
-         ))}
       </View>
 
       {/* Modal แจ้งเตือนจำนวนไม่ถูกต้อง */}

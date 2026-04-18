@@ -5,6 +5,10 @@ import { Header } from '../component/home/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { Sidebar } from '../component/home/Sidebar';
 
+
+
+
+
 export default function ConsultantScreen() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [message, setMessage] = useState('');

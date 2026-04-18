@@ -78,10 +78,9 @@ export const CalendarModal = ({ visible, onClose }: { visible: boolean; onClose:
 
         {/* แถบเมนูด้านล่าง */}
         <View style={styles.bottomTabBar}>
-          <NavIcon icon="flame" label="แคลอรี่" color="#FFB7B2" active={activeTab === 'cal'} onPress={() => setActiveTab('cal')} />
-          <NavIcon icon="scale" label="น้ำหนัก" color="#FFDAC1" active={activeTab === 'weight'} onPress={() => setActiveTab('weight')} />
-          <NavIcon icon="walk" label="การเดิน" color="#E2F0CB" active={activeTab === 'walk'} onPress={() => setActiveTab('walk')} />
-          <NavIcon icon="water" label="ดื่มน้ำ" color="#B5EAD7" active={activeTab === 'water'} onPress={() => setActiveTab('water')} />
+          <NavIcon icon="flame" label="แคลอรี่" color="#ff9f98" active={activeTab === 'cal'} onPress={() => setActiveTab('cal')} />
+          <NavIcon icon="scale" label="น้ำหนัก" color="#ffbe93" active={activeTab === 'weight'} onPress={() => setActiveTab('weight')} />
+          <NavIcon icon="walk" label="การเดิน" color="rgb(141, 160, 255)" active={activeTab === 'water'} onPress={() => setActiveTab('water')} />
           <NavIcon icon="close-circle" label="ปิด" color="#FF85A2" active={false} onPress={onClose} />
         </View>
       </View>

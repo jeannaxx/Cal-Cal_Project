@@ -1,40 +1,101 @@
 //เทนูด้านข้าง
-// component/home/Header.tsx
-import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
+const SIDEBAR_WIDTH = width * 0.75; // กำหนดความกว้าง Sidebar เป็น 75% ของจอ
 
 export const Sidebar = ({ visible, onClose }: { visible: boolean; onClose: () => void }) => {
+  const router = useRouter();
+  // สร้างตัวแปรแอนิเมชัน เริ่มต้นที่ค่าติดลบ (อยู่นอกจอทางซ้าย)
+  const slideAnim = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
+
+  useEffect(() => {
+    if (visible) {
+      // เลื่อนเข้ามาทางขวา
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // เลื่อนกลับไปทางซ้าย
+      Animated.timing(slideAnim, {
+        toValue: -SIDEBAR_WIDTH,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
   const menuItems = [
-    { label: "โปรไฟล์ของฉัน", path: "/profile" }, // กำหนด Path หลอกไว้ก่อน
-    { label: "อาหารของฉัน", path: "/my-foods" },
-    { label: "ออกกำลังกาย", path: "/exercises" },
-    { label: "ตั้งค่า", path: "/settings" }
+    { label: "โปรไฟล์ของฉัน", path: "/profile", icon: "person-outline" },
+    { label: "อาหารของฉัน", path: "/food-search", icon: "restaurant-outline" },
+    { label: "ตั้งค่า", path: "/settings", icon: "settings-outline" }
   ];
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.overlay}>
+        {/* ส่วนพื้นหลังโปร่งแสงสำหรับกดปิด */}
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
+
         {/* ส่วนเมนูหลัก */}
-        <View style={styles.sidebarContainer}>
-          
-          {/* 1. ปุ่มกากบาทปิดเมนู */}
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-            <Ionicons name="close" size={30} color="#fff" />
-          </TouchableOpacity>
+        <Animated.View 
+          style={[
+            styles.sidebarContainer, 
+            { transform: [{ translateX: slideAnim }] }
+          ]}
+        >
+          <LinearGradient
+            colors={['#FF85A2', '#f472a0']}
+            style={styles.gradient}
+          >
+            {/* 1. ส่วนหัว Sidebar */}
+            <View style={styles.header}>
+              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                <Ionicons name="close" size={32} color="#fff" />
+              </TouchableOpacity>
+              
+              <View style={styles.profileSection}>
+                <View style={styles.avatarCircle}>
+                  <Ionicons name="person" size={40} color="#f472a0" />
+                </View>
+                <Text style={styles.profileName}>CAL-CAL</Text>
+                <Text style={styles.profileTagline}>เพื่อนคู่คิด เรื่องแคลอรี่</Text>
+              </View>
+            </View>
 
-          {/* 2. ช่องสี่เหลี่ยมสีขาวไว้ใส่รูป + รายการเมนู */}
-          {menuItems.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.menuItem}>
-              {/* ช่องสี่เหลี่ยมสีขาว */}
-              <View style={styles.iconPlaceholder} />
-              <Text style={styles.menuText}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+            {/* 2. รายการเมนู */}
+            <View style={styles.menuList}>
+              {menuItems.map((item, index) => (
+                <TouchableOpacity 
+                  key={index} 
+                  style={styles.menuItem}
+                  onPress={() => {
+                    onClose();
+                    router.push(item.path as any);
+                  }}
+                >
+                  <View style={styles.iconPlaceholder}>
+                    <Ionicons name={item.icon as any} size={24} color="#f472a0" />
+                  </View>
+                  <Text style={styles.menuText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-        {/* ส่วนพื้นหลังที่เหลือ (แตะเพื่อปิด) */}
-        <TouchableOpacity style={styles.flexArea} onPress={onClose} />
+            {/* 3. ส่วนท้าย Sidebar */}
+            <View style={styles.sidebarFooter}>
+              <Text style={styles.versionText}>Version 1.0.0</Text>
+            </View>
+          </LinearGradient>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -42,10 +103,55 @@ export const Sidebar = ({ visible, onClose }: { visible: boolean; onClose: () =>
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, flexDirection: 'row' },
-  sidebarContainer: { width: '70%', backgroundColor: '#f472a0', padding: 20, paddingTop: 50 },
-  flexArea: { width: '30%' }, // พื้นหลังโปร่งใสฝั่งขวา
-  closeBtn: { alignSelf: 'flex-start', marginBottom: 30 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 25 },
-  iconPlaceholder: { width: 45, height: 45, backgroundColor: '#fff', borderRadius: 10, marginRight: 15 },
-  menuText: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
+  backdrop: { 
+    ...StyleSheet.absoluteFillObject, 
+    backgroundColor: 'rgba(0,0,0,0.4)' 
+  },
+  sidebarContainer: { 
+    width: SIDEBAR_WIDTH, 
+    height: '100%', 
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  gradient: { 
+    flex: 1, 
+    padding: 25,
+    borderTopRightRadius: 40, 
+    borderBottomRightRadius: 40,
+    overflow: 'hidden' // มั่นใจว่าเนื้อหาข้างในไม่ทะลุขอบโค้ง
+  },
+  header: { marginBottom: 30, paddingTop: 20 },
+  closeBtn: { marginBottom: 20 },
+  profileSection: { alignItems: 'center', marginTop: 10 },
+  avatarCircle: { 
+    width: 80, height: 80, borderRadius: 40, backgroundColor: '#fff', 
+    justifyContent: 'center', alignItems: 'center', marginBottom: 15,
+    elevation: 5, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10
+  },
+  profileName: { color: '#fff', fontSize: 24, fontWeight: '900', letterSpacing: 1.5 },
+  profileTagline: { color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 4 },
+  menuList: { flex: 1 },
+  menuItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 20, 
+    backgroundColor: 'rgba(255,255,255,0.15)', 
+    padding: 12, 
+    borderRadius: 20 
+  },
+  iconPlaceholder: { 
+    width: 42, height: 42, backgroundColor: '#fff', 
+    borderRadius: 12, marginRight: 15, 
+    justifyContent: 'center', alignItems: 'center' 
+  },
+  menuText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  sidebarFooter: { 
+    paddingTop: 20, 
+    borderTopWidth: 1, 
+    borderTopColor: 'rgba(255,255,255,0.2)', 
+    alignItems: 'center' 
+  },
+  versionText: { color: 'rgba(255,255,255,0.5)', fontSize: 12 }
 });
