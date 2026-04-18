@@ -25,7 +25,7 @@ export default function Register() {
       {/* ขวา — ฟอร์ม */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 md:px-16 py-10 gap-4">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-700 tracking-wide mb-1">
-          Cel-Cel  Website
+          Cal-Cal  Website
         </h1>
 
         {/* Inputs */}
