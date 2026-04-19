@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import ArticleCard, { Article } from '../../component/News/ArticleCard';
 import axios from 'axios';
+import { API_URL } from '../../../constants/Config';
 
 const ArticleScreen: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -20,11 +21,27 @@ const ArticleScreen: React.FC = () => {
     try {
       setLoading(true);
       setError(false);
-      // เปลี่ยน localhost เป็น IP เครื่องคอมพิวเตอร์ของคุณ เช่น http://192.168.1.35:3000
-      const response = await axios.get('http://localhost:3000/api/articles');
+
+      // 🔍 DEBUG: ตรวจสอบ URL เต็มๆ ใน Console ก่อนส่ง Request
+      const requestUrl = `${API_URL}/articles`;
+      console.log('🌐 Requesting URL:', requestUrl);
+
+      const response = await axios.get(requestUrl, {
+        headers: {
+          // จำเป็นสำหรับการใช้ ngrok เพื่อข้ามหน้า Browser Warning
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
       setArticles(response.data);
     } catch (err) {
-      console.error('Fetch error:', err);
+      if (axios.isAxiosError(err)) {
+        console.error('❌ API Debug:', {
+          url: err.config?.url,
+          status: err.response?.status,
+          data: err.response?.data
+        });
+      }
       setError(true);
     } finally {
       setLoading(false);

@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
-    "types": ["node"],
-    "target": "ES2020",
-    "module": "commonjs",
-    "rootDir": "src",
-    "outDir": "dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "target": "ESNext",                                  /* กำหนดเวอร์ชันของ JavaScript ที่ต้องการ */
+    "module": "CommonJS",                                /* รูปแบบ Module สำหรับ Node.js */
+    "lib": ["ESNext"],                                   /* Library ที่ต้องการใช้งาน */
+    "rootDir": "./src",                                  /* กำหนดให้โฟลเดอร์ src เป็นโฟลเดอร์หลักของ Source Code */
+    "outDir": "./dist",                                  /* โฟลเดอร์สำหรับเก็บไฟล์ที่ Compile แล้ว */
+    "strict": true,                                      /* เปิดใช้งาน Type-checking แบบเข้มงวด */
+    "esModuleInterop": true,                             /* ช่วยให้ Import CommonJS module (เช่น Express) ได้ง่ายขึ้น */
+    "skipLibCheck": true,                                /* ข้ามการเช็ค Type ใน Library ภายนอกเพื่อความรวดเร็ว */
+    "forceConsistentCasingInFileNames": true            /* ป้องกันปัญหาเรื่องชื่อไฟล์พิมพ์เล็ก-ใหญ่บน OS ต่างกัน */
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*"                                           /* รวมทุกไฟล์ใน src รวมถึง express.d.ts ด้วย */
+  ],
+  "exclude": ["node_modules", "dist"]                    /* ไม่นำโฟลเดอร์เหล่านี้มาประมวลผล */
 }

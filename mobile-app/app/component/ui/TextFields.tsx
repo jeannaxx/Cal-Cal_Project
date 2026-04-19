@@ -86,7 +86,7 @@ export default function TextFields() {
           return "กรุณากรอกรหัสผ่าน";
         }
         if (value.trim().length < 8) {
-          return "รหัสผ่านต้องมีอย่างน้ยอย 6 ตัวอักษร";
+          return "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
         }
         return undefined;
       case "confirmPassword":
@@ -183,20 +183,8 @@ export default function TextFields() {
 
       if (error) throw error;
 
-      // 2. ถ้าสมัครสำเร็จ บันทึก username ลงตาราง profiles
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from("profiles") // สร้างตารางนี้ใน Supabase
-          .insert([
-            {
-              id: data.user.id, // ใช้ id จาก Auth
-              username: formData.userName,
-              email: formData.email,
-            },
-          ]);
-
-        if (profileError) throw profileError;
-      }
+      // หมายเหตุ: ข้อมูลในตาราง profiles จะถูกสร้างอัตโนมัติโดย Database Trigger
+      // ไม่จำเป็นต้องใช้ .from("profiles").insert(...) ที่นี่แล้ว
 
       Alert.alert(
         "สมัครสมาชิกสำเร็จ! 🎉",

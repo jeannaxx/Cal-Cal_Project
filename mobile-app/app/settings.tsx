@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUser } from './context/usecontext';
-import { logout } from '../services/authService';
+import { logout } from '../lib/authService';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -63,6 +63,11 @@ export default function SettingsScreen() {
             icon="refresh-outline" 
             label="ตั้งเป้าหมายข้อมูลใหม่" 
             onPress={() => router.push('/gender')} 
+          />
+          <SettingItem 
+            icon="key-outline" 
+            label="เปลี่ยนรหัสผ่าน" 
+            onPress={() => router.push('/change-password')} 
           />
         </View>
 

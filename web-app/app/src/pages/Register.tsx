@@ -1,14 +1,54 @@
 // ใช้ Input + Button
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase' 
 import Input from '../component/Input'
 import Button from '../component/Button'
 import girlImg from '../assets/Lesgo.png' 
+
 export default function Register() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' })
+  const [loading, setLoading] = useState(false)
+
   const update = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(prev => ({ ...prev, [k]: e.target.value }))
+
+  const handleRegister = async () => {
+    const { username, email, password, confirm } = form
+
+    // ตรวจสอบข้อมูลเบื้องต้น
+    if (!username || !email || !password || !confirm) {
+      alert('กรุณากรอกข้อมูลให้ครบทุกช่องนะจ๊ะ')
+      return
+    }
+
+    if (password !== confirm) {
+      alert('รหัสผ่านไม่ตรงกันจ้า ลองเช็คดูอีกทีนะ')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username } // บันทึก username ลงใน user_metadata
+        }
+      })
+
+      if (error) throw error
+      
+      alert('สมัครสมาชิกสำเร็จแล้ว! ไปลองเข้าสู่ระบบกันเลย')
+      navigate('/login')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสมัครสมาชิก'
+      alert(message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen w-full bg-pink-100 flex flex-col md:flex-row">
@@ -38,7 +78,9 @@ export default function Register() {
 
         {/* Buttons */}
         <div className="w-full max-w-sm space-y-3 mt-1">
-          <Button variant="pink">สมัครสมาชิก</Button>
+          <Button variant="pink" onClick={handleRegister} disabled={loading}>
+            {loading ? 'กำลังสมัครสมาชิก...' : 'สมัครสมาชิก'}
+          </Button>
           <Button variant="white" onClick={() => navigate('/login')}>
             มีบัญชีแล้ว? เข้าสู่ระบบ
           </Button>

@@ -1,14 +1,30 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUser } from './context/usecontext';
-import { logout } from '../services/authService';
+import { logout } from '../lib/authService';
+import { supabase } from '../lib/supabase';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { userData, setUserData } = useUser();
+
+  // ดึงข้อมูลจาก Supabase Auth เพื่อมา Update ข้อมูลใน Context
+  useEffect(() => {
+    const fetchAuthData = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user && !error) {
+        setUserData((prev: any) => ({
+          ...prev,
+          username: user.user_metadata?.username || prev.username,
+          email: user.email || prev.email,
+        }));
+      }
+    };
+    fetchAuthData();
+  }, []);
 
   // คำนวณเป้าหมายแคลอรี่จากข้อมูลจริงใน Context
   const suggestedCal = useMemo(() => {
@@ -76,7 +92,12 @@ export default function ProfileScreen() {
               <Ionicons name="camera" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.userName}>{userData.username || 'ผู้ใช้งาน'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
+            <Text style={styles.userName}>{userData.username || 'ผู้ใช้งาน'}</Text>
+            <TouchableOpacity onPress={() => router.push('/edit-profile')} style={{ marginLeft: 8 }}>
+              <Ionicons name="create-outline" size={20} color="#FF85A2" />
+            </TouchableOpacity>
+          </View>
           <Text style={styles.userEmail}>{userData.email || 'ยังไม่ได้ระบุอีเมล'}</Text>
         </View>
 
