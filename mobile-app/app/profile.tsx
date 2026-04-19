@@ -1,191 +1,208 @@
-import React, { useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ActivityIndicator, ScrollView, Image, Alert } from 'react-native';
+import axios from 'axios';
+import { API_URL } from '../constants/Config';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useUser } from './context/usecontext';
-import { logout } from '../lib/authService';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../lib/supabase';
+import Colors from '../constants/Colors';
+
+interface UserProfile {
+  full_name: string;
+  avatar_url?: string;
+  age?: number;
+  gender?: string;
+  weight?: number;
+  height?: number;
+  daily_calorie_goal?: number;
+  goal_weight?: number;
+}
 
 export default function ProfileScreen() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [email, setEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const router = useRouter();
-  const { userData, setUserData } = useUser();
 
-  // ดึงข้อมูลจาก Supabase Auth เพื่อมา Update ข้อมูลใน Context
-  useEffect(() => {
-    const fetchAuthData = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (user && !error) {
-        setUserData((prev: any) => ({
-          ...prev,
-          username: user.user_metadata?.username || prev.username,
-          email: user.email || prev.email,
-        }));
-      }
-    };
-    fetchAuthData();
-  }, []);
-
-  // คำนวณเป้าหมายแคลอรี่จากข้อมูลจริงใน Context
-  const suggestedCal = useMemo(() => {
-    const weight = parseFloat(userData.weight);
-    const height = parseFloat(userData.height);
-    const age = parseFloat(userData.age);
-    const gender = userData.gender;
-    const deficit = userData.deficit || 0;
-
-    if (weight && height && age && gender) {
-      let bmr = 0;
-      if (gender === 'M') {
-        bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
-      } else {
-        bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
-      }
-      const tdee = bmr * 1.2;
-      return Math.max(Math.round(tdee - deficit), 1000);
-    }
-    return 0;
-  }, [userData]);
-
-  // ฟังก์ชันสำหรับออกจากระบบ
-  const handleLogout = async () => {
+  // ดึงข้อมูลโปรไฟล์ปัจจุบัน
+  const fetchProfile = async () => {
     try {
-      await logout(); // เรียก signOut จาก Supabase
-      // ล้างข้อมูลใน Context ให้กลับเป็นค่าเริ่มต้น
-      setUserData({
-        username: '',
-        email: '',
-        gender: null,
-        age: '',
-        height: '',
-        weight: '',
-        goalWeight: '',
-        deficit: 0
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await axios.get(`${API_URL}/profiles/me`, {
+        headers: { 
+          'ngrok-skip-browser-warning': 'true',
+          'Authorization': `Bearer ${session?.access_token}`
+        }
       });
-      router.replace('/(auth)/login' as any); // เด้งไปหน้า Login ทันที
-    } catch (error) {
-      console.error('Logout failed:', error);
-      router.replace('/(auth)/login' as any);
+      setProfile(res.data);
+    } catch (err) {
+      console.error('Fetch profile error:', err);
+      Alert.alert("Error", "ไม่สามารถดึงข้อมูลโปรไฟล์ได้");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // ดึงอีเมลจากระบบ Auth
+  const fetchUserAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) {
+      setEmail(user.email);
+    }
+    if (user?.user_metadata?.username) {
+      setUsername(user.user_metadata.username);
+    }
+  };
+
+  // ฟังก์ชันเลือกรูปภาพจากเครื่อง
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.3,
+      base64: true,
+    });
+
+    if (!result.canceled) {
+      const base64Img = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      updateAvatar(base64Img);
+    }
+  };
+
+  // อัปเดตรูปไปยัง Backend
+  const updateAvatar = async (base64Data: string) => {
+    try {
+      setUploading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      await axios.put(`${API_URL}/profiles/me`, {
+        avatar_url: base64Data
+      }, {
+        headers: { 
+          'ngrok-skip-browser-warning': 'true',
+          'Authorization': `Bearer ${session?.access_token}`
+        }
+      });
+      fetchProfile();
+      Alert.alert("สำเร็จ", "เปลี่ยนรูปโปรไฟล์เรียบร้อยแล้ว");
+    } catch (err) {
+      Alert.alert("ผิดพลาด", "ไม่สามารถอัปโหลดรูปได้");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  useEffect(() => { 
+    fetchProfile(); 
+    fetchUserAuth();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.headerBackground}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={28} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>โปรไฟล์ของฉัน</Text>
-          <View style={{ width: 28 }} /> 
-        </View>
-      </SafeAreaView>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
+          <Ionicons name="chevron-back" size={28} color={Colors.textDeep} />
+        </TouchableOpacity>
+        <Text style={styles.topTitle}>โปรไฟล์ของฉัน</Text>
+        <TouchableOpacity onPress={() => router.push('/settings')} style={styles.iconBtn}>
+          <Ionicons name="settings-outline" size={24} color={Colors.textDeep} />
+        </TouchableOpacity>
+      </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* ส่วนรูปโปรไฟล์ */}
-        <View style={styles.profileSection}>
-          <View style={styles.avatarWrapper}>
-            <View style={styles.avatarPlaceholder}>
-              <Ionicons name="person" size={60} color="#FFC2D1" />
-            </View>
-            <TouchableOpacity style={styles.editImageBtn}>
-              <Ionicons name="camera" size={20} color="#fff" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Profile Header */}
+        <View style={styles.profileHeader}>
+          <View style={styles.imageWrapper}>
+            {profile?.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+            ) : (
+              <Ionicons name="person" size={60} color={Colors.border} />
+            )}
+            {uploading && <ActivityIndicator style={styles.loader} color={Colors.primary} />}
+            <TouchableOpacity style={styles.cameraBtn} onPress={pickImage}>
+              <Ionicons name="camera" size={18} color="#fff" />
             </TouchableOpacity>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
-            <Text style={styles.userName}>{userData.username || 'ผู้ใช้งาน'}</Text>
-            <TouchableOpacity onPress={() => router.push('/edit-profile')} style={{ marginLeft: 8 }}>
-              <Ionicons name="create-outline" size={20} color="#FF85A2" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.userEmail}>{userData.email || 'ยังไม่ได้ระบุอีเมล'}</Text>
+          <Text style={styles.nameText}>{profile?.full_name || username || 'ชื่อของคุณ'}</Text>
+          <Text style={styles.emailText}>{email}</Text>
         </View>
 
-        {/* ส่วนสถิติย่อ */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statVal}>{userData.height || '-'}</Text>
-            <Text style={styles.statLabel}>ส่วนสูง (ซม.)</Text>
+        <View style={styles.mainContent}>
+          {/* Stats Grid */}
+          <View style={styles.statsRow}>
+            <StatBox label="น้ำหนัก" value={profile?.weight} unit="kg" icon="scale-outline" color="#54A0FF" />
+            <StatBox label="ส่วนสูง" value={profile?.height} unit="cm" icon="body-outline" color="#5FB8FF" />
+            <StatBox label="อายุ" value={profile?.age} unit="ปี" icon="calendar-outline" color="#FF85A2" />
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statVal}>{userData.weight || '-'}</Text>
-            <Text style={styles.statLabel}>น้ำหนัก (กก.)</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statVal}>{userData.age || '-'}</Text>
-            <Text style={styles.statLabel}>อายุ (ปี)</Text>
-          </View>
-        </View>
 
-        {/* รายการเมนูข้อมูล */}
-        <View style={styles.infoSection}>
-          <ProfileItem 
-            icon="heart-outline" 
-            label="เป้าหมายแคลอรี่" 
-            value={suggestedCal > 0 ? `${suggestedCal.toLocaleString()} kcal` : 'ยังไม่ได้คำนวณ'} 
-          />
-          <ProfileItem 
-            icon="male-female-outline" 
-            label="เพศ" 
-            value={userData.gender === 'M' ? 'ชาย' : userData.gender === 'F' ? 'หญิง' : 'ไม่ระบุ'} 
-          />
-          <ProfileItem icon="calendar-clear-outline" label="เป้าหมายน้ำหนัก" value={`${userData.goalWeight || '-'} กก.`} />
-          
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutText}>ออกจากระบบ</Text>
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>เป้าหมายของฉัน</Text>
+          <GoalItem icon="flame" label="เป้าหมายพลังงาน" value={profile?.daily_calorie_goal} unit="kcal" />
+          <GoalItem icon="flag" label="เป้าหมายน้ำหนัก" value={profile?.goal_weight} unit="kg" />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
-const ProfileItem = ({ icon, label, value }: { icon: any, label: string, value: string }) => (
-  <View style={styles.infoItem}>
-    <View style={styles.infoIconBox}>
-      <Ionicons name={icon} size={22} color="#FF85A2" />
+const StatBox = ({ label, value, unit, icon, color }: any) => (
+  <View style={styles.statBox}>
+    <View style={[styles.statIcon, { backgroundColor: color + '20' }]}>
+      <Ionicons name={icon} size={20} color={color} />
     </View>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
+    <Text style={styles.statValueText}>{value || '--'}</Text>
+    <Text style={styles.statLabelText}>{label} ({unit})</Text>
+  </View>
+);
+
+const GoalItem = ({ icon, label, value, unit }: any) => (
+  <View style={styles.goalCard}>
+    <View style={styles.goalInfo}>
+      <View style={styles.goalIconCircle}>
+        <Ionicons name={icon} size={22} color={Colors.primary} />
+      </View>
+      <Text style={styles.goalLabel}>{label}</Text>
+    </View>
+    <Text style={styles.goalValue}>{value || '--'} <Text style={styles.goalUnit}>{unit}</Text></Text>
   </View>
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
-  headerBackground: { backgroundColor: '#FF85A2', borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
-  header: { height: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  backBtn: { padding: 5 },
-  profileSection: { alignItems: 'center', marginTop: 50 },
-  avatarWrapper: { position: 'relative' },
-  avatarPlaceholder: { 
-    width: 120, height: 120, borderRadius: 60, backgroundColor: '#fff', 
-    justifyContent: 'center', alignItems: 'center',
-    elevation: 10, shadowColor: '#FF85A2', shadowOpacity: 0.2, shadowRadius: 15
-  },
-  editImageBtn: { 
-    position: 'absolute', bottom: 0, right: 0, 
-    backgroundColor: '#FF85A2', width: 36, height: 36, 
-    borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderColor: '#fff' 
-  },
-  userName: { fontSize: 24, fontWeight: '800', color: '#444', marginTop: 15 },
-  userEmail: { fontSize: 14, color: '#888', marginTop: 5 },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20, marginTop: 30 },
-  statCard: { 
-    backgroundColor: '#fff', padding: 15, borderRadius: 20, width: '28%', 
-    alignItems: 'center', elevation: 3, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5 
-  },
-  statVal: { fontSize: 18, fontWeight: '800', color: '#FF85A2' },
-  statLabel: { fontSize: 10, color: '#999', marginTop: 5 },
-  infoSection: { marginTop: 30, paddingHorizontal: 25, paddingBottom: 40 },
-  infoItem: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', 
-    padding: 15, borderRadius: 20, marginBottom: 15,
-    elevation: 2, shadowColor: '#000', shadowOpacity: 0.03 
-  },
-  infoIconBox: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFF0F3', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  infoLabel: { flex: 1, fontSize: 15, color: '#666', fontWeight: '600' },
-  infoValue: { fontSize: 15, color: '#444', fontWeight: '700' },
-  logoutBtn: { marginTop: 20, padding: 15, alignItems: 'center' },
-  logoutText: { color: '#FF85A2', fontWeight: '800', fontSize: 16 }
+  container: { flex: 1, backgroundColor: '#fff' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, height: 60 },
+  iconBtn: { padding: 5 },
+  topTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.textDeep },
+  scrollContent: { paddingBottom: 40 },
+  profileHeader: { alignItems: 'center', marginVertical: 20 },
+  imageWrapper: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#f0f0f0', justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  avatar: { width: 120, height: 120, borderRadius: 60 },
+  cameraBtn: { position: 'absolute', bottom: 0, right: 0, backgroundColor: Colors.primary, width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#fff' },
+  loader: { position: 'absolute' },
+  nameText: { fontSize: 24, fontWeight: 'bold', color: Colors.textDeep, marginTop: 15 },
+  emailText: { fontSize: 14, color: '#888', marginTop: 5 },
+  mainContent: { paddingHorizontal: 25 },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 20 },
+  statBox: { width: '31%', backgroundColor: '#fff', padding: 15, borderRadius: 20, alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5 },
+  statIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
+  statValueText: { fontSize: 18, fontWeight: 'bold', color: Colors.textDeep },
+  statLabelText: { fontSize: 10, color: '#888', marginTop: 2 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.textDeep, marginBottom: 15, marginTop: 10 },
+  goalCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 20, borderRadius: 20, marginBottom: 12, elevation: 1 },
+  goalInfo: { flexDirection: 'row', alignItems: 'center' },
+  goalIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  goalLabel: { fontSize: 15, fontWeight: '600', color: '#555' },
+  goalValue: { fontSize: 18, fontWeight: 'bold', color: Colors.primary },
+  goalUnit: { fontSize: 12, fontWeight: 'normal', color: '#888' }
 });

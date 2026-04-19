@@ -37,15 +37,15 @@ export const MainCircle = ({
     });
   }, []);
 
-  // คำนวณเป้าหมายแคลอรี่จาก Context (userData) ให้ตรงกับหน้า summary.tsx
+  // คำนวณเป้าหมายแคลอรี่เริ่มต้นจากค่าที่ส่งมาจากหน้า Summary/Profile
   const calculatedTarget = useMemo(() => {
-    const weight = parseFloat(userData.weight);
-    const height = parseFloat(userData.height);
-    const age = parseFloat(userData.age);
+    const weight = parseFloat(userData.weight || '0');
+    const height = parseFloat(userData.height || '0');
+    const age = parseFloat(userData.age || '0');
     const gender = userData.gender;
     const deficit = userData.deficit || 0;
 
-    if (weight && height && age && gender) {
+    if (weight > 0 && height > 0 && age > 0 && gender) {
       let bmr = 0;
       if (gender === 'M') {
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
@@ -80,7 +80,7 @@ export const MainCircle = ({
       
       if (frame >= totalFrames) {
         setDisplayConsumed(consumed);
-        setDisplayTarget(finalTarget);
+        setDisplayTarget(Math.max(finalTarget, 0));
         setDisplayProtein(protein);
         setDisplayCarbs(carbs);
         setDisplayFat(fat);
@@ -106,22 +106,24 @@ export const MainCircle = ({
   return (
     <View style={styles.container}>
       {/* ส่วนแสดงวันที่ */}
-      <Text style={styles.dateText}>{dateDisplay}</Text>
+      <View style={styles.dateBadge}>
+        <Ionicons name="calendar" size={14} color="#f472a0" style={{ marginRight: 6 }} />
+        <Text style={styles.dateText}>{dateDisplay}</Text>
+      </View>
 
       {/* ส่วนวงกลมหลัก */}
       <View style={styles.circleOuter}>
-        <LinearGradient
-          colors={['#FF85A2', '#f472a0']}
-          style={styles.circleInner}
-        >
-          <View style={styles.whiteHole}>
-            <Text style={styles.remainingLabel}>{remainingLabel}</Text>
-            <Text style={[styles.caloriesNum, { color: calorieColor }]}>
-              {Math.abs(remaining).toLocaleString()}
-            </Text>
-            <Text style={styles.unitLabel}>kcal</Text>
-          </View>
-        </LinearGradient>
+        <View style={[styles.progressRing, { borderColor: isOverLimit ? '#FFECEC' : '#FFF0F3' }]}>
+          <LinearGradient colors={['#FF85A2', '#f472a0']} style={styles.circleInner}>
+            <View style={styles.whiteHole}>
+              <Text style={styles.remainingLabel}>{remainingLabel}</Text>
+              <Text style={[styles.caloriesNum, { color: calorieColor }]}>
+                {Math.abs(remaining).toLocaleString()}
+              </Text>
+              <Text style={styles.unitLabel}>kcal</Text>
+            </View>
+          </LinearGradient>
+        </View>
       </View>
 
       {/* ส่วนสรุปตัวเลขด้านล่างวงกลม */}
@@ -171,12 +173,19 @@ const MacroItem = ({ label, value, unit, color }: any) => (
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', marginVertical: 10 },
+  dateBadge: { 
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF0F3',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 25
+  },
   dateText: { 
-    fontSize: 16, 
-    fontWeight: '700', 
+    fontSize: 13, 
+    fontWeight: '800', 
     color: '#f472a0', 
-    marginBottom: 20,
-    opacity: 0.8 
   },
   circleOuter: {
     width: CIRCLE_SIZE,
@@ -190,6 +199,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 15,
+  },
+  progressRing: {
+    width: '100%',
+    height: '100%',
+    borderRadius: CIRCLE_SIZE,
+    borderWidth: 8,
+    padding: 2,
   },
   circleInner: {
     width: '100%',

@@ -4,12 +4,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { Header } from '../component/home/Header';
+import { Sidebar } from '../component/home/Sidebar';
+import { CalendarModal } from '../component/home/CalendarModal';
 import { API_URL } from '../../constants/Config';
 import Colors from '../../constants/Colors';
 
 export default function DashboardScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [isSidebarVisible, setSidebarVisible] = useState(false);
+  const [isCalendarVisible, setCalendarVisible] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [meals, setMeals] = useState<any[]>([]);
   const [summary, setSummary] = useState({ consumed: 0, protein: 0, carbs: 0, fat: 0 });
@@ -28,7 +33,10 @@ export default function DashboardScreen() {
 
       // 1. ดึงข้อมูล Profile (เป้าหมายแคลอรี่)
       const profileRes = await fetch(`${API_URL}/profiles/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        },
         signal: controller.signal
       });
       const profileData = await profileRes.json();
@@ -36,7 +44,10 @@ export default function DashboardScreen() {
 
       // 2. ดึงข้อมูลมื้ออาหารของวันนี้
       const mealRes = await fetch(`${API_URL}/meals?date=${today}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        },
         signal: controller.signal
       });
 
@@ -68,7 +79,7 @@ export default function DashboardScreen() {
     }, [])
   );
 
-  const targetCal = profile?.suggested_calories || 2000;
+  const targetCal = profile?.daily_calorie_goal || 2000;
   const remainingCal = targetCal - summary.consumed;
   const progressWidth = Math.min((summary.consumed / targetCal) * 100, 100);
 
@@ -82,15 +93,18 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Header 
+        onOpenMenu={() => setSidebarVisible(true)} 
+        onOpenCalendar={() => setCalendarVisible(true)} 
+      />
+      
       <ScrollView 
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} color={Colors.primary} />}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData}  />}
       >
-        <View style={styles.header}>
-          <Text style={styles.greeting}>สวัสดี, {profile?.display_name || 'เพื่อนเก่ง'}</Text>
-          <TouchableOpacity onPress={() => router.push('/profile')}>
-             <Ionicons name="person-circle-outline" size={32} color={Colors.primary} />
-          </TouchableOpacity>
+        <View style={styles.welcomeSection}>
+          <Text style={styles.greeting}>สวัสดี, {profile?.full_name || 'เพื่อนเก่ง'}</Text>
+          <Text style={styles.subGreeting}>วันนี้คุณทานอะไรไปแล้วบ้าง?</Text>
         </View>
 
         {/* Main Calorie Card */}
@@ -145,6 +159,19 @@ export default function DashboardScreen() {
           ))
         )}
       </ScrollView>
+
+      {/* เชื่อมต่อ Sidebar */}
+      <Sidebar 
+        visible={isSidebarVisible} 
+        onClose={() => setSidebarVisible(false)} 
+        userProfile={profile}
+      />
+
+      {/* เชื่อมต่อ CalendarModal */}
+      <CalendarModal 
+        visible={isCalendarVisible} 
+        onClose={() => setCalendarVisible(false)} 
+      />
     </SafeAreaView>
   );
 }
@@ -158,9 +185,10 @@ const MacroBox = ({ label, value, color }: any) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.primaryLight },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25, paddingTop: 10, marginBottom: 20 },
+  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  welcomeSection: { paddingHorizontal: 25, paddingTop: 20, marginBottom: 15 },
   greeting: { fontSize: 24, fontWeight: '900', color: Colors.primary },
+  subGreeting: { fontSize: 14, color: '#888', fontWeight: '600' },
   mainCard: { backgroundColor: Colors.primary, marginHorizontal: 25, borderRadius: 30, padding: 25, elevation: 8, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 10 },
   calRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   calTitle: { color: Colors.primaryLight, fontSize: 18, fontWeight: '600', opacity: 0.9 },

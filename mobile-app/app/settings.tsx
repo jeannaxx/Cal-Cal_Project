@@ -5,6 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUser } from './context/usecontext';
 import { logout } from '../lib/authService';
+import { supabase } from '../lib/supabase';
+import axios from 'axios';
+import { API_URL } from '../constants/Config';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -35,11 +38,42 @@ export default function SettingsScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'ลบบัญชีผู้ใช้',
-      'คำเตือน: การลบบัญชีจะทำให้ข้อมูลทั้งหมดหายไปและไม่สามารถกู้คืนได้ คุณต้องการดำเนินการต่อหรือไม่?',
+      'ยืนยันการลบบัญชี',
+      'การดำเนินการนี้จะลบข้อมูลทั้งหมดของคุณและไม่สามารถกู้คืนได้ คุณต้องการลบบัญชีและออกจากระบบทันทีใช่หรือไม่?',
       [
         { text: 'ยกเลิก', style: 'cancel' },
-        { text: 'ลบข้อมูล', style: 'destructive', onPress: () => alert('ดำเนินการส่งคำขอลบบัญชีแล้ว') }
+        { 
+          text: 'ลบบัญชี', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              // 1. ดึง Session เพื่อเอา Access Token
+              const { data: { session } } = await supabase.auth.getSession();
+              const token = session?.access_token;
+
+              // 2. ยิง API หลังบ้านเพื่อลบบัญชีจริง (Hard Delete)
+              await axios.delete(`${API_URL}/profiles/me`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'ngrok-skip-browser-warning': 'true'
+                }
+              });
+
+              // 3. ทำการ Logout ฝั่ง Client และล้างข้อมูลใน Context
+              await supabase.auth.signOut();
+              setUserData({
+                username: '', email: '', gender: null, age: '', height: '', weight: '', goalWeight: '', deficit: 0
+              });
+
+              // 4. เด้งไปหน้า Login พร้อมแจ้งเตือนสำเร็จ
+              router.replace('/(auth)/login' as any);
+              Alert.alert('สำเร็จ', 'บัญชีและข้อมูลของคุณถูกลบออกจากระบบเรียบร้อยแล้ว');
+            } catch (error) {
+              console.error('Delete account error:', error);
+              Alert.alert('เกิดข้อผิดพลาด', 'ไม่สามารถลบบัญชีได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง');
+            }
+          } 
+        }
       ]
     );
   };

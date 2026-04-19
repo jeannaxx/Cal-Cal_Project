@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface CustomAlertProps {
@@ -10,27 +10,27 @@ interface CustomAlertProps {
   onClose: () => void;
 }
 
-export default function CustomAlert({ 
-  visible, 
-  title, 
-  message, 
-  icon = 'information-circle', 
-  onClose 
-}: CustomAlertProps) {
+export default function CustomAlert({ visible, title, message, icon = 'information-circle', onClose }: CustomAlertProps) {
   return (
-    <Modal
-      transparent
-      visible={visible}
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.alertOverlay}>
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.overlay}>
         <View style={styles.alertBox}>
-          <Ionicons name={icon} size={60} color="#FF4D6D" style={{ marginBottom: 12 }} />
-          <Text style={styles.alertTitle}>{title}</Text>
-          <Text style={styles.alertMessage}>{message}</Text>
-          <TouchableOpacity style={styles.alertButton} onPress={onClose}>
-            <Text style={styles.alertButtonText}>ตกลง</Text>
+          {/* Icon Section with decorative circle */}
+          <View style={styles.iconWrapper}>
+            <View style={styles.iconCircle}>
+              <Ionicons name={icon as any} size={42} color="#f472a0" />
+            </View>
+          </View>
+
+          {/* Content Section */}
+          <View style={styles.content}>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.message}>{message}</Text>
+          </View>
+
+          {/* Action Button */}
+          <TouchableOpacity style={styles.button} onPress={onClose} activeOpacity={0.8}>
+            <Text style={styles.buttonText}>ตกลงจ้า</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -39,44 +39,68 @@ export default function CustomAlert({
 }
 
 const styles = StyleSheet.create({
-  alertOverlay: {
+  overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(255, 133, 162, 0.2)', // Light pink tint backdrop
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: 20,
   },
   alertBox: {
-    width: '100%',
-    backgroundColor: '#FFF',
-    borderRadius: 24,
-    padding: 24,
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 35,
+    padding: 25,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
-    elevation: 10,
+    elevation: 15,
+    shadowColor: '#f472a0',
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
   },
-  alertTitle: { 
-    fontSize: 22, 
-    fontWeight: '900', 
-    color: '#FF4D6D', 
-    marginBottom: 12,
-    textAlign: 'center' 
+  iconWrapper: {
+    marginTop: -10,
+    marginBottom: 20,
   },
-  alertMessage: { 
-    fontSize: 16, 
-    color: '#590D22', 
-    textAlign: 'center', 
-    marginBottom: 24, 
-    lineHeight: 22 
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFF0F3',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  alertButton: {
-    backgroundColor: '#FF4D6D',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 15,
+  content: {
+    alignItems: 'center',
+    marginBottom: 25,
   },
-  alertButtonText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+  title: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#c23b6a',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 15,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 10,
+  },
+  button: {
+    backgroundColor: '#f472a0',
+    width: '100%',
+    paddingVertical: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#f472a0',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

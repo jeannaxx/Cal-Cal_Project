@@ -221,6 +221,27 @@ app.put(['/api/profiles/me', '/api/profiles'], authenticate, async (req: Request
   res.json(data[0]);
 });
 
+// --- Delete Account (Hard Delete) ---
+// ลบข้อมูลผู้ใช้ออกจาก auth.users และข้อมูลที่เกี่ยวข้องทั้งหมด (profiles, meals, etc.)
+app.delete('/api/profiles/me', authenticate, async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    // ใช้ Admin API ในการลบ User (ต้องใช้ Service Role Key)
+    // เมื่อลบจาก auth.users ระบบจะลบข้อมูลใน profiles และตารางอื่นๆ ที่มี ON DELETE CASCADE ให้อัตโนมัติ
+    const { error } = await supabase.auth.admin.deleteUser(userId);
+
+    if (error) throw error;
+
+    res.json({ message: 'ลบบัญชีและข้อมูลทั้งหมดของคุณออกจากระบบเรียบร้อยแล้ว' });
+  } catch (error: any) {
+    console.error('❌ Delete Account Error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 app.get('/api/me', authenticate, (req: Request, res: Response) => {
   res.json({ user: req.user });
 });
